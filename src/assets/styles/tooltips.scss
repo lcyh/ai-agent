@@ -1,0 +1,38 @@
+@import "./variables.scss";
+
+// 工具提示样式
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 999;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: $text-white;
+  padding: 4px 8px;
+  border-radius: $border-radius-sm;
+  font-size: 12px;
+  white-space: nowrap;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.2s, visibility 0.2s;
+  pointer-events: none;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent rgba(0, 0, 0, 0.75) transparent transparent;
+  }
+}
+
+// 当父元素被悬停时显示tooltip
+.relative:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}

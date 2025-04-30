@@ -1,292 +1,31 @@
 <template>
-  <div class="flex h-screen bg-[#F1F6FB]" :class="{'text-sm': isMobile}">
-    <!-- 左侧导航栏 -->
-    <aside 
-      v-if="!isMobile || !isCollapsed"
-      class="flex flex-col justify-between h-full bg-[#F1F6FB] p-3 py-3 transition-all duration-300" 
-      :class="isCollapsed ? 'w-[80px]' : 'w-[240px]'"
-    >
-      <div class="flex flex-col gap-4">
-        <!-- Logo -->
-        <div class="flex justify-between items-center w-full">
-          <div class="flex items-center gap-2">
-            <div class="relative">
-              <img src="../assets/icons/logo.svg" class="w-6 h-6 rounded-full" alt="Logo" />
-              <div v-if="isCollapsed" class="tooltip">AI Agent</div>
-            </div>
-            <span v-if="!isCollapsed" class="text-xl font-medium text-[#1D2129] truncate">AI Agent</span>
-          </div>
-          <div class="p-1 rounded cursor-pointer hover:bg-gray-100 relative" @click="isCollapsed = !isCollapsed">
-            <img 
-              :src="expandIcon" 
-              alt="折叠" 
-              class="w-5 h-5"
-              :class="isCollapsed ? 'rotate-180' : ''" 
-            />
-            <div v-if="isCollapsed" class="tooltip">{{ isCollapsed ? '展开' : '折叠' }}</div>
-          </div>
-        </div>
+  <div class="main-layout" :class="{'text-sm': isMobile}">
+    <!-- 左侧导航栏组件 -->
+    <SideNavigation 
+      :isCollapsed="isCollapsed"
+      :isMobile="isMobile"
+      :recentConversations="recentConversations"
+      @toggle-collapse="isCollapsed = !isCollapsed"
+      @new-conversation="newConversation"
+      @switch-conversation="switchToConversation"
+    />
 
-        <!-- 新建对话按钮 -->
-        <a-button type="primary" class="flex items-center justify-center h-10 w-full relative" style="background-color: #165DFF" @click="newConversation">
-          <img src="../assets/icons/icon-add.svg" alt="新建" class="w-4 h-4" :class="isCollapsed ? '' : 'mr-2'" />
-          <span v-if="!isCollapsed">创建新对话</span>
-          <div v-if="isCollapsed" class="tooltip">创建新对话</div>
-        </a-button>
-
-        <!-- 功能列表 -->
-        <div class="flex flex-col gap-0.5">
-          <div class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-            <img src="../assets/icons/icon-search.svg" alt="搜索" class="w-4 h-4" />
-            <span v-if="!isCollapsed" class="text-[#1D2129]">AI搜索</span>
-            <div v-if="isCollapsed" class="tooltip">AI搜索</div>
-          </div>
-          <div class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-            <img src="../assets/icons/icon-code.svg" alt="编程" class="w-4 h-4" />
-            <span v-if="!isCollapsed" class="text-[#1D2129]">AI编程</span>
-            <div v-if="isCollapsed" class="tooltip">AI编程</div>
-          </div>
-          <!-- <div class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-            <img src="../assets/icons/icon-chart.svg" alt="图表" class="w-4 h-4" />
-            <span v-if="!isCollapsed" class="text-[#1D2129]">AI图表</span>
-            <div v-if="isCollapsed" class="tooltip">AI图表</div>
-          </div> -->
-          <!-- <div class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-            <img src="../assets/icons/icon-library.svg" alt="知识库" class="w-4 h-4" />
-            <span v-if="!isCollapsed" class="text-[#1D2129]">知识库</span>
-            <div v-if="isCollapsed" class="tooltip">知识库</div>
-          </div>
-          <div class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-            <img src="../assets/icons/icon-apps.svg" alt="智能体" class="w-4 h-4" />
-            <span v-if="!isCollapsed" class="text-[#1D2129]">智能体</span>
-            <div v-if="isCollapsed" class="tooltip">智能体</div>
-          </div> -->
-        </div>
-
-        <div class="w-full h-px bg-[#E5E6EB]"></div>
-
-        <!-- 最近对话 -->
-        <div v-if="!isCollapsed" class="flex flex-col gap-2 px-3">
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <img src="../assets/icons/icon-chat.svg" alt="对话" class="w-4 h-4" />
-              <span class="text-[#1D2129]">最近对话</span>
-            </div>
-            <div class="flex items-center gap-0.5 text-xs text-[#86909C] cursor-pointer">
-              <span>更多</span>
-              <span class="transform rotate-90">></span>
-            </div>
-          </div>
-          
-          <div class="flex flex-col gap-0.5">
-            <div v-for="(conv, index) in recentConversations" :key="index" class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer" @click="switchToConversation(conv.id)">
-              <div class="w-2 h-2 rounded-full bg-[#BEDAFF]"></div>
-              <span class="text-[#4E5969] truncate">{{ conv.title }}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div v-else class="flex items-center p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-          <img src="../assets/icons/icon-chat.svg" alt="最近对话" class="w-4 h-4" />
-          <div class="tooltip">最近对话</div>
-        </div>
-      </div>
-
-      <!-- 个人入口 -->
-      <div class="flex items-center gap-2 p-2 px-3 rounded hover:bg-white cursor-pointer relative">
-        <img src="../assets/icons/user-avatar.svg" class="w-6 h-6 rounded-full" alt="User" />
-        <span v-if="!isCollapsed" class="text-[#1D2129] truncate">lc</span>
-        <div v-if="isCollapsed" class="tooltip">lc</div>
-      </div>
-    </aside>
-
-    <!-- 主内容区 -->
-    <main class="flex-1 flex flex-col relative bg-white rounded-xl" :class="isMobile ? 'mx-1 my-1' : 'mx-4 my-3'">
-      <!-- 页头 -->
-      <div class="flex justify-between items-center p-2.5 px-4 border-b border-[#F2F3F5] absolute top-0 left-0 right-0 bg-white z-10 rounded-t-xl">
-        <div class="flex items-center gap-6">
-          <div v-if="isMobile" class="cursor-pointer p-1" @click="isCollapsed = !isCollapsed">
-            <img src="../assets/icons/icon-menu.svg" class="w-5 h-5" alt="菜单" onerror="this.src='../assets/icons/icon-more.svg'"/>
-          </div>
-          <div class="px-2 py-1">
-            <span class="text-base font-medium text-[#1D2129]" :class="{'text-sm': isMobile}">这是一段对话</span>
-          </div>
-          <div v-if="!isMobile" class="flex items-center gap-2 bg-[#F2F3F5] px-3 py-1.5 rounded">
-            <img src="../assets/icons/icon-search.svg" alt="搜索" class="w-4 h-4" />
-            <span class="text-[#86909C]">搜索</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 对话区域 -->
-      <div class="flex-1 overflow-auto p-6 px-6 pt-24 pb-40 md:px-[100px] lg:px-[160px]">
-        <!-- 对话内容 -->
-        <div class="flex flex-col gap-8 max-w-4xl mx-auto">
-          <!-- 用户消息 -->
-          <div v-for="(message, index) in conversation" :key="index" class="w-full">
-            <!-- 用户气泡 -->
-            <div v-if="message.role === 'user'" class="flex justify-end items-end gap-4 mb-2">
-              <div class="flex flex-col items-end">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-xs text-[#86909C]">{{ formatTime(message.timestamp) }}</span>
-                  <span class="text-xs text-[#4E5969]">lc</span>
-                </div>
-                <div class="bg-[#165DFF] text-white p-3 px-4 rounded-lg max-w-3xl shadow-sm">
-                  <p class="text-sm">{{ message.content }}</p>
-                </div>
-              </div>
-              <img src="../assets/icons/user-avatar.svg" class="w-10 h-10 rounded-full flex-shrink-0" alt="User" />
-            </div>
-            
-            <!-- AI气泡 -->
-            <div v-else-if="message.role === 'assistant'" class="flex justify-start gap-4 mb-6">
-              <img src="../assets/icons/logo.svg" class="w-10 h-10 rounded-full flex-shrink-0" alt="AI" />
-              <div class="flex flex-col w-full max-w-3xl">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="text-xs text-[#4E5969]">AI Agent</span>
-                  <span class="text-xs text-[#86909C]">{{ formatTime(message.timestamp) }}</span>
-                </div>
-                <div class="bg-white shadow-sm border border-[#F2F3F5] p-3 px-4 rounded-lg">
-                  <!-- 使用v-html渲染格式化后的消息内容，允许代码块渲染 -->
-                  <div v-if="!hasCodeBlock(message.content)" class="text-sm text-[#1D2129] whitespace-pre-wrap">{{ message.content }}</div>
-                  <div v-else v-html="formatMessageWithCodeBlocks(message.content)" class="message-content"></div>
-                  
-                  <!-- 可能的图表或搜索结果 -->
-                  <div v-if="message.streaming && message.chart?.title" class="mt-4 border border-[#F2F3F5] rounded-xl p-4">
-                    <div class="flex items-center gap-x-2 mb-2">
-                      <div class="text-base font-medium">{{ message.chart.title }}</div>
-                    </div>
-                    <div class="w-full h-60 bg-gray-100 rounded flex items-center justify-center">
-                      <!-- 图表渲染位置 -->
-                      <span class="text-gray-500">图表内容</span>
-                    </div>
-                  </div>
-                  
-                  <!-- 加载中 -->
-                  <div v-if="message.loading" class="flex justify-between items-center mt-3">
-                    <div class="flex items-center gap-2">
-                      <div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                      <span class="text-sm text-gray-500">AI 正在思考中...</span>
-                      
-                      <!-- 流式响应进度指示 -->
-                      <span v-if="message.streaming && message.content" class="text-xs text-[#86909C]">(正在接收响应...)</span>
-                    </div>
-                    
-                    <!-- 取消按钮 -->
-                    <button 
-                      v-if="message.loading" 
-                      @click="cancelRequest"
-                      class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-                    >
-                      取消
-                    </button>
-                  </div>
-                  
-                  <!-- 交互按钮 -->
-                  <div v-if="!message.loading" class="flex justify-between mt-3">
-                    <div class="flex gap-1">
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
-                        <img src="../assets/icons/icon-volume.svg" alt="朗读" class="w-4 h-4" />
-                      </div>
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100" @click="copyMessageContent(message.content)">
-                        <img src="../assets/icons/icon-copy.svg" alt="复制" class="w-4 h-4" />
-                      </div>
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
-                        <img src="../assets/icons/icon-refresh.svg" alt="刷新" class="w-4 h-4" />
-                      </div>
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
-                        <img src="../assets/icons/icon-share.svg" alt="分享" class="w-4 h-4" />
-                      </div>
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
-                        <img src="../assets/icons/icon-more.svg" alt="更多" class="w-4 h-4" />
-                      </div>
-                    </div>
-                    
-                    <div class="flex gap-1">
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
-                        <img src="../assets/icons/icon-thumb-up.svg" alt="赞" class="w-4 h-4" />
-                      </div>
-                      <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
-                        <img src="../assets/icons/icon-thumb-down.svg" alt="踩" class="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <!-- 猜你想问 -->
-                <div v-if="message.suggestions && message.suggestions.length > 0" class="flex flex-col gap-2 mt-3">
-                  <div v-for="(suggestion, sIndex) in message.suggestions" :key="sIndex" 
-                       class="flex justify-between items-center border border-[#F2F3F5] rounded-lg p-2 px-3 cursor-pointer hover:bg-gray-50"
-                       @click="sendMessage(suggestion)">
-                    <span class="text-sm text-[#1D2129]">🔍 {{ suggestion }}</span>
-                    <img src="../assets/icons/icon-chart.svg" alt="发送" class="w-4 h-4" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 输入框 - 简化版 -->
-      <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-[#F2F3F5] p-4 shadow-lg">
-        <div class="max-w-4xl mx-auto">
-          <!-- 输入框和发送按钮 -->
-          <div class="flex flex-col">
-            <!-- 模型选择区域 -->
-            <div class="flex flex-wrap items-center gap-2 mb-3">
-              <div 
-                class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer" 
-                :class="selectedModel === 'deepseek' ? 'bg-[#EFF3FF] border border-[#94BFFF]' : 'bg-[#F7F8FA]'"
-                @click="selectModel('deepseek')"
-              >
-                <img src="../assets/icons/icon-deepseek.svg" class="w-4 h-4" alt="DeepSeek" />
-                <span class="text-[#1D2129]">DeepSeek-R1</span>
-              </div>
-              <div 
-                class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer" 
-                :class="selectedModel === 'silicon' ? 'bg-[#EFF3FF] border border-[#94BFFF]' : 'bg-[#F7F8FA]'"
-                @click="selectModel('silicon')"
-              >
-                <img src="../assets/icons/icon-deepseek.svg" class="w-4 h-4" alt="硅基流动" />
-                <span class="text-[#1D2129]">硅基流动</span>
-              </div>
-              <div 
-                class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer" 
-                :class="selectedModel === 'web' ? 'bg-[#EFF3FF] border border-[#94BFFF]' : 'bg-[#F7F8FA]'"
-                @click="selectModel('web')"
-              >
-                <img src="../assets/icons/icon-global.svg" class="w-4 h-4" alt="按需搜索网页" />
-                <span class="text-[#1D2129]">按需搜索网页</span>
-              </div>
-            </div>
-            
-            <!-- 输入和发送区域 -->
-            <div class="flex items-center justify-between min-h-[56px] border border-[#E5E6EB] rounded-lg p-2 px-4 bg-white focus-within:border-[#165DFF]">
-              <input 
-                v-model="inputMessage" 
-                type="text" 
-                placeholder="给AI Agent发消息" 
-                class="flex-1 outline-none text-[#1D2129] text-sm"
-                @keyup.enter="sendMessage()"
-              />
-              <div 
-                class="w-8 h-8 flex items-center justify-center rounded-full bg-[#165DFF] cursor-pointer hover:bg-[#4080FF] ml-2 transition-colors"
-                @click="sendMessage()"
-              >
-                <img src="../assets/icons/icon-sent.svg" class="w-4 h-4" alt="发送" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+    <!-- 聊天区域组件 -->
+    <ChatArea 
+      :conversation="conversation"
+      :isMobile="isMobile"
+      :selectedModel="selectedModel"
+      :isLoading="isLoading"
+      @toggle-collapse="isCollapsed = !isCollapsed"
+      @send-message="sendMessage"
+      @select-model="selectModel"
+      @cancel-request="cancelRequest"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, watch, nextTick, computed } from 'vue';
-import expandIcon from '../assets/icons/expand.svg';
 import { deepseekApi, siliconFlowApi, modelConfig } from '../api/ai';
 import type { ModelType } from '../api/ai';
 import { 
@@ -297,9 +36,6 @@ import {
   createLoadingAIMessage,
   withTimeout,
   REQUEST_TIMEOUT,
-  hasCodeBlock,
-  formatMessageWithCodeBlocks,
-  copyMessageContent,
   debounce,
   finalizeAIMessage,
   updateMessageUI,
@@ -307,6 +43,8 @@ import {
   setupCodeBlockEventListeners
 } from './chat/utils';
 import type { Message } from './chat/types';
+import SideNavigation from '../components/SideNavigation.vue';
+import ChatArea from '../components/ChatArea.vue';
 
 // 对话历史记录类型定义
 interface ConversationHistory {
@@ -315,13 +53,6 @@ interface ConversationHistory {
   timestamp: number;
   lastMessage: string;
   messages: Message[];
-}
-
-// 搜索结果接口定义
-interface SearchResult {
-  title: string;
-  url: string;
-  source: string; // 来源：知乎或掘金
 }
 
 // 状态变量
@@ -392,9 +123,6 @@ const newConversation = () => {
     ...DEFAULT_WELCOME_MESSAGE,
     timestamp: Date.now()
   });
-  
-  // 清空输入框
-  inputMessage.value = '';
 };
 
 // 保存当前对话到历史记录
@@ -955,45 +683,6 @@ onMounted(() => {
   padding-left: 1rem;
   color: #4E5969;
   margin: 1rem 0;
-}
-</style>
-
-<style scoped>
-/* Tooltip样式 */
-.tooltip {
-  visibility: hidden;
-  position: absolute;
-  z-index: 999;
-  background-color: rgba(0, 0, 0, 0.75);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  margin-left: 10px;
-  opacity: 0;
-  transition: opacity 0.2s, visibility 0.2s;
-  pointer-events: none;
-}
-
-.tooltip::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent rgba(0, 0, 0, 0.75) transparent transparent;
-}
-
-/* 当父元素被悬停时显示tooltip */
-.relative:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
 }
 
 /* 移动设备响应式样式 */

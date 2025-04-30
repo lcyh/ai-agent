@@ -1,0 +1,55 @@
+// 主题色变量
+$primary-color: #165dff;
+$primary-light: #4080ff;
+$primary-lighter: #eff3ff;
+$primary-border: #94bfff;
+$primary-bg-light: rgba(22, 93, 255, 0.1);
+
+// 背景色
+$bg-color: #f1f6fb;
+$bg-light: #f7f8fa;
+$bg-white: #ffffff;
+
+// 边框色
+$border-color: #e5e6eb;
+$border-light: #f2f3f5;
+
+// 文本颜色
+$text-primary: #1d2129;
+$text-secondary: #4e5969;
+$text-tertiary: #86909c;
+$text-white: #ffffff;
+
+// 功能色
+$success-color: #22863a;
+$warning-color: #e36209;
+$danger-color: #d73a49;
+$info-color: #6f42c1;
+
+// 代码块颜色
+$code-bg: #f8f9fa;
+$code-header-bg: #f1f3f5;
+$code-border: #e9ecef;
+$code-comment: #6a737d;
+$code-keyword: #d73a49;
+$code-function: #6f42c1;
+$code-string: #22863a;
+$code-number: #e36209;
+$code-property: #005cc5;
+
+// 尺寸
+$sidebar-width: 240px;
+$sidebar-collapsed-width: 80px;
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+
+// 字体
+$font-family-code: "Menlo", "Monaco", "Courier New", monospace;
+
+// 阴影
+$shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+// 断点
+$breakpoint-mobile: 768px;
