@@ -168,11 +168,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits, onMounted, nextTick } from 'vue';
+import { ref, computed, defineProps, defineEmits } from 'vue';
 import { formatTime } from '../services/messageService';
 import { hasCodeBlock, formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
-import type { Message } from '../views/chat/types';
-import type { ModelType } from '../api/ai';
+import type { Message } from '../types/chat';
+import type { ModelType } from '../types/api';
+import type { ModelOption } from '../types/component';
 
 // 导入图标
 import iconDeepseek from '../assets/icons/icon-deepseek.svg';
@@ -190,13 +191,6 @@ import iconMenu from '../assets/icons/icon-more.svg';
 import iconSearch from '../assets/icons/icon-search.svg';
 import logoAI from '../assets/icons/logo.svg';
 import avatarUser from '../assets/icons/user-avatar.svg';
-
-// 定义模型选项类型
-interface ModelOption {
-  id: ModelType;
-  name: string;
-  icon: string;
-}
 
 // 定义组件属性
 const props = defineProps({

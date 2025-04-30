@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue';
-import type { ModelType } from '../api/ai';
+import type { ModelType } from '../types/api';
 import { modelConfig } from '../api/ai';
 import { 
   REQUEST_TIMEOUT,
@@ -43,7 +43,6 @@ import {
   simulateSearchResponse
 } from '../services/messageService';
 import { scrollToBottom, debouncedScroll, setupCodeBlockEventListeners } from '../services/uiService';
-import type { Message } from './chat/types';
 import { useConversationManager } from '../services/conversationService';
 import SideNavigation from '../components/SideNavigation.vue';
 import ChatArea from '../components/ChatArea.vue';

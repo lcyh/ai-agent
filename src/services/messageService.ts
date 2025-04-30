@@ -2,8 +2,8 @@
  * @Author: changluo
  * @Description: 消息处理服务
  */
-import type { Message } from '../views/chat/types';
-import type { ModelType } from '../api/ai';
+import type { Message } from '../types/chat';
+import type { ModelType } from '../types/api';
 import { deepseekApi, siliconFlowApi } from '../api/ai';
 
 // 默认欢迎消息

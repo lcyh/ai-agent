@@ -1,17 +1,10 @@
 /*
  * @Author: changluo
- * @Description: 
+ * @Description: AI API接口封装
  * @LastEditors: luc19964 luochang@gopherasset.com
  */
 import request from '../utils/request'
-
-// 模型配置类型定义
-export interface ModelConfigType {
-  model: string;
-  apiVersion: string;
-}
-
-export type ModelType = 'deepseek' | 'silicon' | 'web';
+import type { ModelType, ModelConfigType, ChunkCallback, CompletionCallback } from '../types/api'
 
 // 创建一个统一的API配置对象
 export const modelConfig: Record<ModelType, ModelConfigType> = {
@@ -28,18 +21,6 @@ export const modelConfig: Record<ModelType, ModelConfigType> = {
     apiVersion: ''
   }
 }
-
-// 定义响应块处理回调函数类型
-export type ChunkCallback = (chunk: {
-  choices?: Array<{
-    delta?: {
-      content?: string;
-    };
-  }>;
-}) => void;
-
-// 定义完成回调函数类型
-export type CompletionCallback = () => void;
 
 // DeepSeek API 接口封装
 export const deepseekApi = {

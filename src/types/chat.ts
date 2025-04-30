@@ -1,8 +1,13 @@
 /*
  * @Author: changluo
+ * @Description: 
+ * @LastEditors: luc19964 luochang@gopherasset.com
+ */
+/*
+ * @Author: changluo
  * @Description: 聊天相关类型定义
  */
-import type { ModelType } from '../../api/ai';
+import type { ModelType } from './api';
 
 /**
  * 聊天消息接口
@@ -25,5 +30,5 @@ export interface Message {
   };
 }
 
-// 重新导出ModelType类型
+// 导出ModelType类型供使用
 export type { ModelType }; 

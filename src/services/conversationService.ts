@@ -3,18 +3,10 @@
  * @Description: 对话管理相关服务
  */
 import { ref, reactive, computed } from 'vue';
-import type { Message } from '../views/chat/types';
-import type { ModelType } from '../api/ai';
+import type { Message } from '../types/chat';
+import type { ConversationHistory } from '../types/conversationHistory';
+import type { ModelType } from '../types/api';
 import { formatTime, DEFAULT_WELCOME_MESSAGE } from './messageService';
-
-// 对话历史记录类型
-export interface ConversationHistory {
-  id: string;
-  title: string;
-  timestamp: number;
-  lastMessage: string;
-  messages: Message[];
-}
 
 /**
  * 使用对话管理服务创建聊天功能
