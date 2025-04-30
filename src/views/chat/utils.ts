@@ -298,16 +298,69 @@ export const copyMessageContent = (content: string): void => {
 };
 
 /**
+ * 获取语言对应的文件扩展名
+ * @param lang 语言类型
+ * @returns 对应的文件扩展名
+ */
+export const getFileExtension = (lang: string): string => {
+  const extensionMap: Record<string, string> = {
+    'javascript': 'js',
+    'typescript': 'ts',
+    'python': 'py',
+    'java': 'java',
+    'c': 'c',
+    'cpp': 'cpp',
+    'csharp': 'cs',
+    'go': 'go',
+    'ruby': 'rb',
+    'php': 'php',
+    'swift': 'swift',
+    'kotlin': 'kt',
+    'rust': 'rs',
+    'scala': 'scala',
+    'html': 'html',
+    'css': 'css',
+    'scss': 'scss',
+    'less': 'less',
+    'json': 'json',
+    'xml': 'xml',
+    'yaml': 'yaml',
+    'markdown': 'md',
+    'shell': 'sh',
+    'bash': 'sh',
+    'sql': 'sql',
+    'dockerfile': 'Dockerfile',
+    'plaintext': 'txt'
+  };
+
+  // 将语言名称转为小写以增强匹配能力
+  const langLower = lang.toLowerCase();
+  return extensionMap[langLower] || langLower;
+};
+
+/**
  * 下载代码文件
  * @param code 代码内容
  * @param lang 语言类型
  */
 export const downloadCode = (code: string, lang: string): void => {
-  const blob = new Blob([code], { type: 'text/plain' });
+  // 获取正确的文件扩展名
+  const extension = getFileExtension(lang);
+
+  // 根据语言设置正确的MIME类型
+  let mimeType = 'text/plain';
+  if (extension === 'html') mimeType = 'text/html';
+  else if (extension === 'css') mimeType = 'text/css';
+  else if (extension === 'json') mimeType = 'application/json';
+  else if (extension === 'js') mimeType = 'application/javascript';
+  else if (extension === 'xml') mimeType = 'application/xml';
+
+  // 创建文件并下载
+  const blob = new Blob([code], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `code.${lang}`;
+  a.download = `code.${extension}`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
