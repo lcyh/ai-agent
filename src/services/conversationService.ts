@@ -10,30 +10,24 @@ import { formatTime, DEFAULT_WELCOME_MESSAGE } from './messageService';
 import { normalizeChatType } from '../utils/chatUtils';
 
 // 根据对话类型提供不同的欢迎消息
-const getWelcomeMessageByType = (type: ChatType): Message => {
-  switch (type) {
+const getDefaultWelcomeMessage = (chatType: ChatType): Message => {
+  switch (chatType) {
     case 'agent':
       return {
         role: 'assistant',
-        content: '你好！我是AI Agent，可以帮你解决各种问题，包括信息搜索和编程问题。请问有什么我可以帮助你的？',
+        content: '你好！我是AI Agent，可以帮你解决各种问题，包括信息搜索和编程问题，请问有什么我可以帮助你的?',
         timestamp: Date.now(),
         chatType: 'agent',
         suggestions: ['解决编程问题', '搜索最新资讯', '帮我优化代码']
       };
-    case 'image':
-      return {
-        role: 'assistant',
-        content: '你好！我是AI图像助手，可以帮你处理和理解图像。请上传一张图片或告诉我你的需求。',
-        timestamp: Date.now(),
-        chatType: 'image',
-        suggestions: ['分析这张图片内容', '为我生成一张图片', '修复图片中的瑕疵']
-      };
     case 'general':
     default:
       return {
-        ...DEFAULT_WELCOME_MESSAGE,
+        role: 'assistant',
+        content: '你好！我是AI助手，有什么我可以帮你的？',
+        timestamp: Date.now(),
         chatType: 'general',
-        timestamp: Date.now()
+        suggestions: ['介绍一下你自己', '今天天气如何?', '写一篇文章', '请帮我写一下代码']
       };
   }
 };
@@ -59,10 +53,10 @@ export function useConversationManager() {
   const conversationsByType = computed(() => {
     const result: Record<ChatType, ConversationHistory[]> = {
       general: [],
-      agent: [],
-      image: []
+      agent: []
     };
 
+    // 确保使用有效的聊天类型
     historyConversations.value.forEach(conv => {
       // 确保使用有效的聊天类型
       const chatType = normalizeChatType(conv.chatType);
@@ -99,7 +93,7 @@ export function useConversationManager() {
     activeChatType.value = type;
 
     // 获取对应类型的欢迎消息
-    const welcomeMessage = getWelcomeMessageByType(type);
+    const welcomeMessage = getDefaultWelcomeMessage(type);
 
     // 创建新的对话对象并添加到历史记录
     const typeName = {
@@ -294,4 +288,16 @@ export function useConversationManager() {
     updateMessageUI,
     initializeConversation
   };
-} 
+}
+
+/**
+ * 获取对话类型的显示名称
+ */
+export const getConversationTypeLabel = (type: ChatType): string => {
+  const labels: Record<ChatType, string> = {
+    general: '通用对话',
+    agent: 'Agent对话'
+  };
+
+  return labels[type] || '未知对话';
+}; 

@@ -43,15 +43,6 @@
           <span v-if="!isCollapsed" class="text-[#1D2129]">AI Agent</span>
           <div v-if="isCollapsed" class="tooltip">AI Agent</div>
         </div>
-        <div 
-          class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative"
-          :class="{'bg-white': activeChatType === 'image'}"
-          @click="switchToChatType('image')"
-        >
-          <img src="../assets/icons/icon-image.svg" alt="图像" class="w-4 h-4" />
-          <span v-if="!isCollapsed" class="text-[#1D2129]">AI图像</span>
-          <div v-if="isCollapsed" class="tooltip">AI图像</div>
-        </div>
       </div>
 
       <div class="w-full h-px bg-[#E5E6EB]"></div>
@@ -193,8 +184,7 @@ const props = defineProps({
     type: Object as () => Record<ChatType, ConversationHistory[]>,
     default: () => ({
       general: [],
-      agent: [],
-      image: []
+      agent: []
     })
   }
 });
@@ -242,22 +232,31 @@ const clearAllConversations = () => {
   }
 };
 
+// 按当前活跃的聊天类型过滤对话
+const filteredConversations = computed(() => {
+  return props.activeChatType === 'general' || props.activeChatType === 'agent'
+    ? props.recentConversations.filter(conv => conv.chatType === props.activeChatType)
+    : props.recentConversations;
+});
+
 // 生成对话标题（如果没有标题）
 const formatConversationTitle = (conv: ConversationHistory): string => {
   if (conv.title) return conv.title;
   
   // 根据聊天类型生成默认标题
   if (conv.chatType === 'agent') return 'AI Agent对话';
-  if (conv.chatType === 'image') return 'AI图像对话';
   return '无标题对话';
 };
 
-// 按当前活跃的聊天类型过滤对话
-const filteredConversations = computed(() => {
-  return props.activeChatType === 'general' || props.activeChatType === 'agent' || props.activeChatType === 'image' 
-    ? props.recentConversations.filter(conv => conv.chatType === props.activeChatType)
-    : props.recentConversations;
-});
+// 获取聊天类型对应的背景颜色
+const getChatTypeColor = (chatType: ChatType): string => {
+  switch (chatType) {
+    case 'agent':
+      return 'bg-[#4CAF50]';
+    default:
+      return 'bg-[#808080]';
+  }
+};
 
 // 获取今天的对话
 const todayConversations = computed(() => {
@@ -289,18 +288,6 @@ const olderConversations = computed(() => {
     .filter(conv => conv.timestamp < sevenDaysAgo)
     .sort((a, b) => b.timestamp - a.timestamp);
 });
-
-// 获取聊天类型对应的背景颜色
-const getChatTypeColor = (chatType: ChatType): string => {
-  switch (chatType) {
-    case 'agent':
-      return 'bg-[#4CAF50]';
-    case 'image':
-      return 'bg-[#FFA500]';
-    default:
-      return 'bg-[#808080]';
-  }
-};
 </script>
 
 <style lang="scss" scoped>

@@ -263,8 +263,6 @@ const filteredModels = computed(() => {
   switch (props.activeChatType) {
     case 'agent':
       return allModels.filter(model => model.id === 'deepseek');
-    case 'image':
-      return allModels.filter(model => model.id === 'silicon');
     case 'general':
     default:
       return allModels;
@@ -275,43 +273,34 @@ const filteredModels = computed(() => {
 const chatTypeTitle = computed(() => {
   return {
     general: '通用对话',
-    agent: 'AI Agent对话',
-    image: 'AI图像对话'
+    agent: 'AI Agent对话'
   }[props.activeChatType] || '对话';
 });
 
 // 获取对话类型信息
 const chatTypeInfo = computed(() => {
-  switch (props.activeChatType) {
-    case 'agent':
-      return {
-        name: 'AI Agent助手',
-        aiName: 'AI Agent助手',
-        icon: iconCode,
-        bgColor: 'bg-[#FFF3E8]',
-        description: '我可以帮你解决各种问题，包括信息搜索和编程问题，并提供智能建议。',
-        placeholder: '向AI Agent提问...'
-      };
-    case 'image':
-      return {
-        name: 'AI图像助手',
-        aiName: 'AI图像助手',
-        icon: iconImage,
-        bgColor: 'bg-[#F5E8FF]',
-        description: '我可以帮你理解、分析和处理图像，或者根据描述生成图像。',
-        placeholder: '描述你需要的图像或上传图片...'
-      };
-    case 'general':
-    default:
-      return {
-        name: 'AI助手',
-        aiName: 'AI助手',
-        icon: logoAI,
-        bgColor: 'bg-[#EFF3FF]',
-        description: '我是一个通用AI助手，可以回答各种问题，提供信息和建议。',
-        placeholder: '请输入你的问题'
-      };
-  }
+  const types = {
+    general: {
+      name: '通用助手',
+      icon: logoAI,
+      bgColor: 'bg-[#EFF3FF]',
+      description: '可以解答各种问题',
+      placeholder: '输入你的问题...',
+      aiName: '通用助手',
+      models: filteredModels.value
+    },
+    agent: {
+      name: 'AI Agent助手',
+      icon: iconCode,
+      bgColor: 'bg-[#FFF3E8]',
+      description: '搜索、编程、写作、创作',
+      placeholder: '有什么可以帮你的?',
+      aiName: 'AI Agent助手',
+      models: [allModels[0]]
+    }
+  };
+  
+  return types[props.activeChatType] || types.general;
 });
 
 // 是否显示对话类型提示

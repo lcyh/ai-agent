@@ -5,7 +5,7 @@
 import type { ModelType } from './api';
 
 // 定义对话类型
-export type ChatType = 'general' | 'agent' | 'image';
+export type ChatType = 'general' | 'agent';
 
 /**
  * 聊天消息接口
