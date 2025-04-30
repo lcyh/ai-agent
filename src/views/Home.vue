@@ -4,15 +4,18 @@
  * @LastEditors: luc19964 luochang@gopherasset.com
 -->
 <template>
-  <div class="main-layout" :class="{'text-sm': isMobile}">
+  <div class="main-layout" :class="{'text-sm': isMobile, [`chat-type-${activeChatType}`]: true}">
     <!-- 左侧导航栏组件 -->
     <SideNavigation 
       :isCollapsed="isCollapsed"
       :isMobile="isMobile"
       :recentConversations="recentConversations"
+      :activeChatType="activeChatType"
+      :conversationsByType="conversationsByType"
       @toggle-collapse="isCollapsed = !isCollapsed"
       @new-conversation="newConversation"
       @switch-conversation="switchToConversation"
+      @switch-chat-type="switchChatType"
     />
 
     <!-- 聊天区域组件 -->
@@ -21,6 +24,7 @@
       :isMobile="isMobile"
       :selectedModel="selectedModel"
       :isLoading="isLoading"
+      :activeChatType="activeChatType"
       @toggle-collapse="isCollapsed = !isCollapsed"
       @send-message="sendMessage"
       @select-model="selectModel"
@@ -32,6 +36,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, nextTick } from 'vue';
 import type { ModelType } from '../types/api';
+import type { ChatType } from '../types/chat';
 import { modelConfig } from '../api/ai';
 import { 
   REQUEST_TIMEOUT,
@@ -44,6 +49,7 @@ import {
 } from '../services/messageService';
 import { scrollToBottom, debouncedScroll, throttledResize, setupCodeBlockEventListeners } from '../services/uiService';
 import { useConversationManager } from '../services/conversationService';
+import { normalizeChatType } from '../utils/chatUtils';
 import SideNavigation from '../components/SideNavigation.vue';
 import ChatArea from '../components/ChatArea.vue';
 
@@ -51,9 +57,12 @@ import ChatArea from '../components/ChatArea.vue';
 const {
   conversation,
   recentConversations,
+  conversationsByType,
+  activeChatType,
   newConversation,
   saveCurrentConversation,
   switchToConversation,
+  switchChatType,
   finalizeAIMessage,
   updateMessageUI,
   initializeConversation
@@ -65,6 +74,21 @@ const selectedModel = ref<ModelType>('deepseek');
 const isLoading = ref(false);
 const abortController = ref<AbortController | null>(null);
 const isMobile = ref(false);
+
+// 根据对话类型自动设置默认模型
+watch(activeChatType, (newType: ChatType) => {
+  switch (newType) {
+    case 'agent':
+      selectedModel.value = 'deepseek';
+      break;
+    case 'image':
+      selectedModel.value = 'silicon';
+      break;
+    case 'general':
+    default:
+      selectedModel.value = 'deepseek';
+  }
+}, { immediate: true });
 
 // 检测移动设备
 const checkMobile = () => {
@@ -88,8 +112,8 @@ const sendMessage = async (content?: string) => {
   if (!messageContent) return;
   
   // 添加消息到对话
-  const userMessage = createUserMessage(messageContent);
-  const aiMessage = createLoadingAIMessage();
+  const userMessage = createUserMessage(messageContent, activeChatType.value);
+  const aiMessage = createLoadingAIMessage(activeChatType.value);
   
   conversation.push(userMessage);
   conversation.push(aiMessage);
@@ -184,12 +208,17 @@ const cancelRequest = () => {
     // 查找最后一个正在加载的AI消息
     const loadingMessageIndex = conversation.findIndex(msg => msg.loading);
     if (loadingMessageIndex !== -1) {
+      // 获取原始消息的chatType，确保是有效类型
+      const originalMessage = conversation[loadingMessageIndex];
+      const chatType = normalizeChatType(originalMessage.chatType, activeChatType.value);
+      
       // 更新为取消状态
       conversation[loadingMessageIndex] = {
         ...conversation[loadingMessageIndex],
         content: '响应已取消',
         loading: false,
-        streaming: false
+        streaming: false,
+        chatType
       };
     }
     

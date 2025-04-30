@@ -3,10 +3,40 @@
  * @Description: 对话管理相关服务
  */
 import { ref, reactive, computed } from 'vue';
-import type { Message } from '../types/chat';
+import type { Message, ChatType } from '../types/chat';
 import type { ConversationHistory } from '../types/conversationHistory';
 import type { ModelType } from '../types/api';
 import { formatTime, DEFAULT_WELCOME_MESSAGE } from './messageService';
+import { normalizeChatType } from '../utils/chatUtils';
+
+// 根据对话类型提供不同的欢迎消息
+const getWelcomeMessageByType = (type: ChatType): Message => {
+  switch (type) {
+    case 'agent':
+      return {
+        role: 'assistant',
+        content: '你好！我是AI Agent，可以帮你解决各种问题，包括信息搜索和编程问题。请问有什么我可以帮助你的？',
+        timestamp: Date.now(),
+        chatType: 'agent',
+        suggestions: ['解决编程问题', '搜索最新资讯', '帮我优化代码']
+      };
+    case 'image':
+      return {
+        role: 'assistant',
+        content: '你好！我是AI图像助手，可以帮你处理和理解图像。请上传一张图片或告诉我你的需求。',
+        timestamp: Date.now(),
+        chatType: 'image',
+        suggestions: ['分析这张图片内容', '为我生成一张图片', '修复图片中的瑕疵']
+      };
+    case 'general':
+    default:
+      return {
+        ...DEFAULT_WELCOME_MESSAGE,
+        chatType: 'general',
+        timestamp: Date.now()
+      };
+  }
+};
 
 /**
  * 使用对话管理服务创建聊天功能
@@ -16,12 +46,36 @@ export function useConversationManager() {
   const activeConversationId = ref<string>('default');
   const historyConversations = ref<ConversationHistory[]>([]);
   const conversation = reactive<Message[]>([
-    { ...DEFAULT_WELCOME_MESSAGE, timestamp: Date.now() - 60000 }
+    { ...DEFAULT_WELCOME_MESSAGE, timestamp: Date.now() - 60000, chatType: 'general' }
   ]);
+  const activeChatType = ref<ChatType>('general');
 
   // 按时间从近到远排序的最近对话
   const recentConversations = computed(() => {
     return [...historyConversations.value].sort((a, b) => b.timestamp - a.timestamp);
+  });
+
+  // 按对话类型筛选的对话列表
+  const conversationsByType = computed(() => {
+    const result: Record<ChatType, ConversationHistory[]> = {
+      general: [],
+      agent: [],
+      image: []
+    };
+
+    historyConversations.value.forEach(conv => {
+      // 确保使用有效的聊天类型
+      const chatType = normalizeChatType(conv.chatType);
+
+      result[chatType].push({ ...conv, chatType });
+    });
+
+    // 对每种类型的对话按时间从近到远排序
+    Object.keys(result).forEach(type => {
+      result[type as ChatType].sort((a, b) => b.timestamp - a.timestamp);
+    });
+
+    return result;
   });
 
   // 生成唯一ID
@@ -32,7 +86,7 @@ export function useConversationManager() {
   /**
    * 创建新对话
    */
-  const newConversation = () => {
+  const newConversation = (type: ChatType = 'general') => {
     // 如果当前对话有内容，保存到历史记录
     if (conversation.length > 1) {
       saveCurrentConversation();
@@ -41,23 +95,33 @@ export function useConversationManager() {
     // 创建新的对话ID
     activeConversationId.value = generateId();
 
+    // 更新当前活跃对话类型
+    activeChatType.value = type;
+
+    // 获取对应类型的欢迎消息
+    const welcomeMessage = getWelcomeMessageByType(type);
+
     // 创建新的对话对象并添加到历史记录
+    const typeName = {
+      general: '新对话',
+      agent: 'AI Agent对话',
+      image: '图像对话'
+    }[type];
+
     const newConv: ConversationHistory = {
       id: activeConversationId.value,
-      title: `新对话 ${formatTime(Date.now())}`,
+      title: `${typeName} ${formatTime(Date.now())}`,
       timestamp: Date.now(),
       lastMessage: '',
-      messages: [{ ...DEFAULT_WELCOME_MESSAGE, timestamp: Date.now() }]
+      messages: [welcomeMessage],
+      chatType: type
     };
 
     historyConversations.value.unshift(newConv);
 
     // 清空当前对话内容并添加欢迎消息
     conversation.splice(0, conversation.length);
-    conversation.push({
-      ...DEFAULT_WELCOME_MESSAGE,
-      timestamp: Date.now()
-    });
+    conversation.push(welcomeMessage);
   };
 
   /**
@@ -92,7 +156,8 @@ export function useConversationManager() {
         title,
         timestamp: Date.now(),
         lastMessage,
-        messages: [...conversation]
+        messages: [...conversation],
+        chatType: activeChatType.value
       });
     }
   };
@@ -112,10 +177,32 @@ export function useConversationManager() {
     // 加载选中的对话
     const selectedConv = historyConversations.value.find(conv => conv.id === id);
     if (selectedConv) {
+      // 确保使用有效的聊天类型
+      const chatType = normalizeChatType(selectedConv.chatType);
+
+      // 更新当前活跃对话类型
+      activeChatType.value = chatType;
+
       // 更新对话内容
       conversation.splice(0, conversation.length);
-      selectedConv.messages.forEach(msg => conversation.push({ ...msg }));
+      selectedConv.messages.forEach(msg => {
+        // 确保消息的chatType有效
+        const msgChatType = normalizeChatType(msg.chatType, chatType);
+
+        conversation.push({ ...msg, chatType: msgChatType });
+      });
     }
+  };
+
+  /**
+   * 切换对话类型并创建新对话
+   */
+  const switchChatType = (type: ChatType) => {
+    // 如果已经是当前类型，不做任何操作
+    if (type === activeChatType.value) return;
+
+    // 创建指定类型的新对话
+    newConversation(type);
   };
 
   /**
@@ -136,6 +223,9 @@ export function useConversationManager() {
           conversation.slice(0, -2)
         );
 
+        // 获取当前对话类型
+        const currentChatType = activeChatType.value;
+
         // 更新最终消息状态
         conversation[aiMessageIndex] = {
           role: 'assistant',
@@ -143,14 +233,14 @@ export function useConversationManager() {
           timestamp: Date.now(),
           loading: false,
           streaming: false,
-          suggestions
+          suggestions,
+          chatType: currentChatType
         };
 
-        // 如果是联网搜索模式且消息包含数据相关关键词，添加图表
-        if (selectedModel === 'web' &&
-          (messageContent.includes('数据') ||
-            messageContent.includes('图表') ||
-            messageContent.includes('统计'))) {
+        // 如果消息包含数据相关关键词，添加图表
+        if (messageContent.includes('数据') ||
+          messageContent.includes('图表') ||
+          messageContent.includes('统计')) {
           conversation[aiMessageIndex].chart = {
             title: '相关数据统计图表'
           };
@@ -183,7 +273,8 @@ export function useConversationManager() {
         title: '默认对话',
         timestamp: Date.now(),
         lastMessage: DEFAULT_WELCOME_MESSAGE.content,
-        messages: [...conversation]
+        messages: [...conversation],
+        chatType: 'general'
       });
     }
   };
@@ -193,9 +284,12 @@ export function useConversationManager() {
     conversation,
     historyConversations,
     recentConversations,
+    conversationsByType,
+    activeChatType,
     newConversation,
     saveCurrentConversation,
     switchToConversation,
+    switchChatType,
     finalizeAIMessage,
     updateMessageUI,
     initializeConversation

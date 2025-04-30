@@ -7,7 +7,9 @@
           <img :src="iconMenu" class="w-5 h-5" alt="菜单" />
         </div>
         <div class="px-2 py-1">
-          <span class="text-base font-medium" :class="{'text-sm': isMobile}">这是一段对话</span>
+          <span class="text-base font-medium" :class="{'text-sm': isMobile}">
+            {{ chatTypeTitle }}
+          </span>
         </div>
         <div v-if="!isMobile" class="flex items-center gap-2 bg-[#F2F3F5] px-3 py-1.5 rounded">
           <img :src="iconSearch" alt="搜索" class="w-4 h-4" />
@@ -18,6 +20,19 @@
 
     <!-- 对话区域 -->
     <div class="chat-container">
+      <!-- 对话类型提示 -->
+      <div v-if="showChatTypeHint" class="max-w-4xl mx-auto mb-8 p-4 bg-[#F8FAFD] rounded-lg border border-[#E5E6EB]">
+        <div class="flex items-start gap-3">
+          <div class="p-2 rounded-lg" :class="chatTypeInfo.bgColor">
+            <img :src="chatTypeInfo.icon" class="w-6 h-6" :alt="chatTypeInfo.name" />
+          </div>
+          <div>
+            <h3 class="text-base font-medium mb-1">{{ chatTypeInfo.name }}</h3>
+            <p class="text-[#4E5969] text-sm">{{ chatTypeInfo.description }}</p>
+          </div>
+        </div>
+      </div>
+
       <div class="flex flex-col gap-8 max-w-4xl mx-auto">
         <!-- 用户消息 -->
         <div v-for="(message, index) in conversation" :key="index" class="w-full">
@@ -40,7 +55,7 @@
             <img :src="logoAI" class="w-7 h-7 rounded-full flex-shrink-0" alt="AI" />
             <div class="flex flex-col w-full max-w-3xl">
               <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs text-[#4E5969]">AI Agent</span>
+                <span class="text-xs text-[#4E5969]">{{ chatTypeInfo.aiName }}</span>
                 <span class="text-xs text-[#86909C]">{{ formatTime(message.timestamp) }}</span>
               </div>
               <div class="ai-bubble">
@@ -134,7 +149,7 @@
           <!-- 模型选择区域 -->
           <div class="flex flex-wrap items-center gap-2 mb-3">
             <div 
-              v-for="model in availableModels" 
+              v-for="model in filteredModels" 
               :key="model.id"
               class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer" 
               :class="selectedModel === model.id ? 'bg-[#EFF3FF] border border-[#94BFFF]' : 'bg-[#F7F8FA]'"
@@ -150,7 +165,7 @@
             <input 
               v-model="inputText" 
               type="text" 
-              placeholder="给AI Agent发消息" 
+              :placeholder="chatTypeInfo.placeholder"
               class="flex-1 outline-none text-sm"
               @keyup.enter="onEnterPress"
             />
@@ -171,7 +186,7 @@
 import { ref, computed, defineProps, defineEmits } from 'vue';
 import { formatTime } from '../services/messageService';
 import { hasCodeBlock, formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
-import type { Message } from '../types/chat';
+import type { Message, ChatType } from '../types/chat';
 import type { ModelType } from '../types/api';
 import type { ModelOption } from '../types/component';
 
@@ -189,6 +204,8 @@ import iconThumbDown from '../assets/icons/icon-thumb-down.svg';
 import iconChart from '../assets/icons/icon-chart.svg';
 import iconMenu from '../assets/icons/icon-more.svg';
 import iconSearch from '../assets/icons/icon-search.svg';
+import iconCode from '../assets/icons/icon-code.svg';
+import iconImage from '../assets/icons/icon-image.svg';
 import logoAI from '../assets/icons/logo.svg';
 import avatarUser from '../assets/icons/user-avatar.svg';
 
@@ -209,38 +226,87 @@ const props = defineProps({
   isLoading: {
     type: Boolean,
     required: true
+  },
+  activeChatType: {
+    type: String as () => ChatType,
+    default: 'general'
   }
 });
 
 // 定义事件
-const emit = defineEmits([
-  'toggle-collapse', 
-  'send-message', 
-  'select-model', 
-  'cancel-request'
-]);
+const emit = defineEmits(['toggle-collapse', 'send-message', 'select-model', 'cancel-request']);
 
 // 本地输入框值
 const inputText = ref('');
 
 // 可用模型列表
-const availableModels = computed<ModelOption[]>(() => [
-  {
-    id: 'deepseek',
-    name: 'DeepSeek-R1',
-    icon: iconDeepseek
-  },
-  {
-    id: 'silicon',
-    name: '硅基流动',
-    icon: iconDeepseek
-  },
-  {
-    id: 'web',
-    name: '按需搜索网页',
-    icon: iconGlobal
+const allModels: ModelOption[] = [
+  { id: 'deepseek', name: 'DeepSeek-R1', icon: iconDeepseek },
+  { id: 'silicon', name: '硅基流动', icon: iconDeepseek }, 
+  { id: 'web', name: '联网搜索', icon: iconGlobal }
+];
+
+// 根据对话类型筛选可用模型
+const filteredModels = computed(() => {
+  switch (props.activeChatType) {
+    case 'agent':
+      return allModels.filter(model => model.id === 'deepseek');
+    case 'image':
+      return allModels.filter(model => model.id === 'silicon');
+    case 'general':
+    default:
+      return allModels;
   }
-]);
+});
+
+// 根据对话类型显示标题
+const chatTypeTitle = computed(() => {
+  return {
+    general: '通用对话',
+    agent: 'AI Agent对话',
+    image: 'AI图像对话'
+  }[props.activeChatType] || '对话';
+});
+
+// 获取对话类型信息
+const chatTypeInfo = computed(() => {
+  switch (props.activeChatType) {
+    case 'agent':
+      return {
+        name: 'AI Agent助手',
+        aiName: 'AI Agent助手',
+        icon: iconCode,
+        bgColor: 'bg-[#FFF3E8]',
+        description: '我可以帮你解决各种问题，包括信息搜索和编程问题，并提供智能建议。',
+        placeholder: '向AI Agent提问...'
+      };
+    case 'image':
+      return {
+        name: 'AI图像助手',
+        aiName: 'AI图像助手',
+        icon: iconImage,
+        bgColor: 'bg-[#F5E8FF]',
+        description: '我可以帮你理解、分析和处理图像，或者根据描述生成图像。',
+        placeholder: '描述你需要的图像或上传图片...'
+      };
+    case 'general':
+    default:
+      return {
+        name: 'AI助手',
+        aiName: 'AI助手',
+        icon: logoAI,
+        bgColor: 'bg-[#EFF3FF]',
+        description: '我是一个通用AI助手，可以回答各种问题，提供信息和建议。',
+        placeholder: '请输入你的问题'
+      };
+  }
+});
+
+// 是否显示对话类型提示
+const showChatTypeHint = computed(() => {
+  // 如果对话中只有一条消息（欢迎消息），则显示提示
+  return props.conversation.length <= 1;
+});
 
 // 切换折叠状态
 const toggleCollapse = () => {
@@ -249,17 +315,15 @@ const toggleCollapse = () => {
 
 // 处理Enter键按下
 const onEnterPress = () => {
-  if (inputText.value.trim()) {
-    emit('send-message', inputText.value);
-    inputText.value = '';
+  if (inputText.value.trim() && !props.isLoading) {
+    handleSendMessage(inputText.value);
   }
 };
 
 // 处理发送按钮点击
 const onSendClick = () => {
-  if (inputText.value.trim()) {
-    emit('send-message', inputText.value);
-    inputText.value = '';
+  if (inputText.value.trim() && !props.isLoading) {
+    handleSendMessage(inputText.value);
   }
 };
 
@@ -267,6 +331,7 @@ const onSendClick = () => {
 const handleSendMessage = (suggestion: string) => {
   if (suggestion) {
     emit('send-message', suggestion);
+    inputText.value = '';
   }
 };
 

@@ -91,6 +91,45 @@
   }
 }
 
+// 对话类型颜色主题
+.chat-type {
+  &-general {
+    --chat-accent-color: #{vars.$primary-color};
+    --chat-bg-light: #{vars.$primary-bg-light};
+    --chat-border-color: #{vars.$primary-border};
+  }
+
+  &-agent {
+    --chat-accent-color: #165dff;
+    --chat-bg-light: rgba(22, 93, 255, 0.1);
+    --chat-border-color: #94bfff;
+  }
+
+  &-image {
+    --chat-accent-color: #8b5cf6;
+    --chat-bg-light: rgba(139, 92, 246, 0.1);
+    --chat-border-color: #c4b5fd;
+  }
+}
+
+// 不同对话类型的气泡样式
+.chat-type-agent .user-bubble {
+  background-color: #165dff;
+}
+
+.chat-type-image .user-bubble {
+  background-color: #8b5cf6;
+}
+
+// 不同对话类型的建议按钮样式
+.chat-type-agent .suggestion-item:hover {
+  background-color: rgba(22, 93, 255, 0.1);
+}
+
+.chat-type-image .suggestion-item:hover {
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
 // 响应式调整
 @media (max-width: vars.$breakpoint-mobile) {
   .message-content {

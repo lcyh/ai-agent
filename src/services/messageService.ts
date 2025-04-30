@@ -6,12 +6,14 @@ import type { Message } from '../types/chat';
 import type { ModelType } from '../types/api';
 import { deepseekApi, siliconFlowApi } from '../api/ai';
 import dayjs from 'dayjs';
+import { normalizeChatType } from '../utils/chatUtils';
 
 // 默认欢迎消息
 export const DEFAULT_WELCOME_MESSAGE: Message = {
   role: 'assistant',
   content: '你好！我是AI Agent，有什么我可以帮助你的吗？',
   timestamp: Date.now(),
+  chatType: 'general',
   suggestions: ['介绍一下你自己', '今天天气如何？', '帮我写一篇文章']
 };
 
@@ -21,21 +23,23 @@ export const REQUEST_TIMEOUT = 30000; // 30秒
 /**
  * 创建用户消息
  */
-export const createUserMessage = (content: string): Message => ({
+export const createUserMessage = (content: string, chatType: 'general' | 'agent' | 'image' = 'general'): Message => ({
   role: 'user',
   content,
-  timestamp: Date.now()
+  timestamp: Date.now(),
+  chatType
 });
 
 /**
  * 创建AI消息（加载状态）
  */
-export const createLoadingAIMessage = (): Message => ({
+export const createLoadingAIMessage = (chatType: 'general' | 'agent' | 'image' = 'general'): Message => ({
   role: 'assistant',
   content: '',
   timestamp: Date.now(),
   loading: true,
-  streaming: true
+  streaming: true,
+  chatType
 });
 
 /**
@@ -117,7 +121,7 @@ export const formatTime = (timestamp: number): string => {
  */
 export const generateSuggestions = (query: string, model: ModelType, history: Message[] = []): string[] => {
   // 基础模型推荐
-  const baseRecommendations = {
+  const baseRecommendations: Record<ModelType, string[]> = {
     'deepseek': ['告诉我更多关于DeepSeek的信息', '你能做什么？', '帮我分析一下这个问题'],
     'silicon': ['你和DeepSeek有什么区别？', '可以给我讲个故事吗？', '如何使用硅基流动模型'],
     'web': ['查找更多相关信息', '对比不同搜索结果', '总结关键观点']
@@ -130,7 +134,7 @@ export const generateSuggestions = (query: string, model: ModelType, history: Me
     return [
       '这段代码有什么优化空间？',
       '如何解决这个编程问题？',
-      baseRecommendations[model][0]
+      baseRecommendations[model]?.[0] || '告诉我更多信息'
     ];
   }
 
@@ -173,12 +177,17 @@ export const handleResponseError = (
     : (error instanceof Error ? error.message : '未知错误');
 
   if (!abortController?.signal.aborted && messageIndex >= 0 && messageIndex < conversation.length) {
+    // 获取原始消息的chatType，确保是有效类型
+    const originalMessage = conversation[messageIndex];
+    const chatType = normalizeChatType(originalMessage.chatType);
+
     conversation[messageIndex] = {
       role: 'assistant',
       content: `抱歉，请求出现错误: ${errorMessage}`,
       timestamp: Date.now(),
       loading: false,
-      streaming: false
+      streaming: false,
+      chatType
     };
   }
 };
