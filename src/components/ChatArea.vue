@@ -11,9 +11,13 @@
             {{ chatTypeTitle }}
           </span>
         </div>
-        <div v-if="!isMobile" class="flex items-center gap-2 bg-[#F2F3F5] px-3 py-1.5 rounded">
-          <img :src="iconSearch" alt="搜索" class="w-4 h-4" />
-          <span class="text-[#86909C]">搜索</span>
+        <div class="flex-1">
+          <SearchBar
+            :conversations="recentConversations"
+            :currentConversation="conversation"
+            :placeholder="'搜索对话内容...'"
+            @select-result="handleSearchResultSelect"
+          />
         </div>
       </div>
     </div>
@@ -183,12 +187,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits, nextTick } from 'vue';
 import { formatTime } from '../services/messageService';
 import { hasCodeBlock, formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
 import type { Message, ChatType } from '../types/chat';
 import type { ModelType } from '../types/api';
 import type { ModelOption } from '../types/component';
+import type { ConversationHistory } from '../types/conversationHistory';
+import type { SearchResultItem } from '../services/searchService';
+import SearchBar from './SearchBar.vue';
 
 // 导入图标
 import iconDeepseek from '../assets/icons/icon-deepseek.svg';
@@ -230,11 +237,15 @@ const props = defineProps({
   activeChatType: {
     type: String as () => ChatType,
     default: 'general'
+  },
+  recentConversations: {
+    type: Array as () => ConversationHistory[],
+    default: () => []
   }
 });
 
 // 定义事件
-const emit = defineEmits(['toggle-collapse', 'send-message', 'select-model', 'cancel-request']);
+const emit = defineEmits(['toggle-collapse', 'send-message', 'select-model', 'cancel-request', 'jump-to-message']);
 
 // 本地输入框值
 const inputText = ref('');
@@ -349,8 +360,59 @@ const cancelRequest = () => {
 const copyText = (text: string) => {
   copyToClipboard(text);
 };
+
+// 处理搜索结果选择
+const handleSearchResultSelect = (result: SearchResultItem) => {
+  // 如果是当前对话，滚动到相应消息
+  if (result.conversationId === 'current') {
+    scrollToMessage(result.messageIndex);
+  } else {
+    // 如果是其他对话，跳转到该对话并定位到特定消息
+    emit('jump-to-message', {
+      conversationId: result.conversationId,
+      messageIndex: result.messageIndex
+    });
+  }
+};
+
+// 滚动到指定消息
+const scrollToMessage = (messageIndex: number) => {
+  nextTick(() => {
+    // 获取所有消息元素
+    const messageElements = document.querySelectorAll('.user-bubble, .ai-bubble');
+    if (messageElements && messageElements[messageIndex]) {
+      // 滚动到指定元素并高亮显示
+      messageElements[messageIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      messageElements[messageIndex].classList.add('highlight-message');
+      
+      // 移除高亮
+      setTimeout(() => {
+        messageElements[messageIndex].classList.remove('highlight-message');
+      }, 2000);
+    }
+  });
+};
 </script>
 
 <style lang="scss" scoped>
-// 组件特有样式可以在这里定义
+.copy-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.highlight-message {
+  animation: highlight-pulse 2s ease;
+}
+
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(22, 93, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0);
+  }
+}
 </style> 

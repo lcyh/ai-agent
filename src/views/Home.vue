@@ -25,10 +25,12 @@
       :selectedModel="selectedModel"
       :isLoading="isLoading"
       :activeChatType="activeChatType"
+      :recentConversations="recentConversations"
       @toggle-collapse="isCollapsed = !isCollapsed"
       @send-message="sendMessage"
       @select-model="selectModel"
       @cancel-request="cancelRequest"
+      @jump-to-message="jumpToMessage"
     />
   </div>
 </template>
@@ -233,6 +235,25 @@ watch(conversation, () => {
   nextTick(scrollToBottom);
 }, { deep: true });
 
+// 跳转到特定对话的特定消息
+const jumpToMessage = ({ conversationId, messageIndex }: { conversationId: string, messageIndex: number }) => {
+  // 切换到目标对话
+  switchToConversation(conversationId);
+  
+  // 等待对话内容加载完成后滚动到指定消息
+  nextTick(() => {
+    const messageElements = document.querySelectorAll('.user-bubble, .ai-bubble');
+    if (messageElements && messageElements[messageIndex]) {
+      messageElements[messageIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      messageElements[messageIndex].classList.add('highlight-message');
+      
+      setTimeout(() => {
+        messageElements[messageIndex].classList.remove('highlight-message');
+      }, 2000);
+    }
+  });
+};
+
 // 组件挂载时初始化
 onMounted(() => {
   // 初始化对话
@@ -326,6 +347,23 @@ onMounted(() => {
 .copy-toast.show {
   opacity: 1;
   transform: translate(-50%, 0);
+}
+
+/* 高亮搜索结果 */
+.highlight-message {
+  animation: highlight-pulse 2s ease;
+}
+
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(22, 93, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0);
+  }
 }
 
 /* 响应式调整 */
