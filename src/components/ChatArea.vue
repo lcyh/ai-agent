@@ -169,8 +169,10 @@
 
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits, onMounted, nextTick } from 'vue';
-import { formatTime, hasCodeBlock, formatMessageWithCodeBlocks, copyMessageContent } from '../views/chat/utils';
-import type { Message, ModelType } from '../views/chat/types';
+import { formatTime } from '../services/messageService';
+import { hasCodeBlock, formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
+import type { Message } from '../views/chat/types';
+import type { ModelType } from '../api/ai';
 
 // 导入图标
 import iconDeepseek from '../assets/icons/icon-deepseek.svg';
@@ -286,7 +288,7 @@ const cancelRequest = () => {
 
 // 复制文本
 const copyText = (text: string) => {
-  copyMessageContent(text);
+  copyToClipboard(text);
 };
 </script>
 

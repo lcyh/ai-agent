@@ -1,0 +1,92 @@
+/* Markdown 格式化样式 */
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+  color: #1d2129;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.message-content h1 {
+  font-size: 1.5rem;
+}
+
+.message-content h2 {
+  font-size: 1.3rem;
+}
+
+.message-content h3 {
+  font-size: 1.15rem;
+}
+
+.message-content p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.message-content ul,
+.message-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.message-content li {
+  margin-bottom: 0.5rem;
+}
+
+.message-content a {
+  color: #165dff;
+  text-decoration: none;
+}
+
+.message-content a:hover {
+  text-decoration: underline;
+}
+
+.message-content blockquote {
+  border-left: 4px solid #e5e6eb;
+  padding-left: 1rem;
+  color: #4e5969;
+  margin: 1rem 0;
+}
+
+.message-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.message-content th,
+.message-content td {
+  border: 1px solid #e5e6eb;
+  padding: 0.5rem;
+}
+
+.message-content th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* 响应式调整 */
+@media (max-width: 767px) {
+  .message-content h1,
+  .message-content h2 {
+    font-size: 1.1rem;
+  }
+
+  .message-content h3,
+  .message-content h4,
+  .message-content h5,
+  .message-content h6 {
+    font-size: 1rem;
+  }
+
+  .message-content p,
+  .message-content li {
+    font-size: 0.875rem;
+  }
+}

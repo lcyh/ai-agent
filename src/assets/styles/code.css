@@ -1,0 +1,200 @@
+/* 代码块样式 */
+.code-block-container {
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 1rem 0;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #f1f3f5;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.code-lang-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #495057;
+  text-transform: uppercase;
+}
+
+.code-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.copy-button,
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #6c757d;
+  background-color: transparent;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-button:hover,
+.download-button:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.copy-button:focus,
+.download-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(130, 138, 145, 0.4);
+}
+
+.code-block-body {
+  position: relative;
+  display: flex;
+  overflow-x: auto;
+}
+
+.line-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 16px 8px 16px 12px;
+  background-color: #f1f3f5;
+  color: #adb5bd;
+  user-select: none;
+  font-size: 0.875rem;
+  border-right: 1px solid #e9ecef;
+  text-align: right;
+  min-width: 40px;
+}
+
+.line-number {
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+
+.code-block-body pre {
+  margin: 0;
+  padding: 16px;
+  background-color: transparent;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #212529;
+  flex-grow: 1;
+}
+
+.code-block-body code {
+  background-color: transparent;
+  padding: 0;
+  white-space: pre;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  tab-size: 2;
+}
+
+/* 语法高亮颜色 */
+.hljs {
+  background-color: transparent;
+  color: #24292e;
+}
+
+.hljs-keyword,
+.hljs-selector-tag {
+  color: #d73a49;
+}
+
+.hljs-built_in {
+  color: #6f42c1;
+}
+
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-addition {
+  color: #22863a;
+}
+
+.hljs-comment,
+.hljs-quote,
+.hljs-deletion {
+  color: #6a737d;
+}
+
+.hljs-number,
+.hljs-variable {
+  color: #e36209;
+}
+
+.hljs-function,
+.hljs-title.function_ {
+  color: #6f42c1;
+}
+
+.hljs-attr,
+.hljs-property {
+  color: #005cc5;
+}
+
+/* 复制提示样式 */
+.copy-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  background-color: #ffffff;
+  color: #1d2129;
+  padding: 10px 16px;
+  border-radius: 8px;
+  z-index: 9999;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f2f3f5;
+  font-size: 14px;
+  max-width: 300px;
+  text-align: center;
+}
+
+.copy-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.toast-icon {
+  display: inline-flex;
+  color: #165dff;
+}
+
+/* 为文本代码增加样式 */
+.message-content p code,
+.message-content li code {
+  background-color: rgba(22, 93, 255, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #165dff;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
+  font-size: 0.85em;
+}
+
+/* 响应式调整 */
+@media (max-width: 767px) {
+  .code-block-container {
+    margin: 0.5rem 0;
+  }
+
+  .code-block-body pre {
+    font-size: 0.75rem;
+    padding: 10px;
+  }
+}
