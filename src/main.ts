@@ -16,6 +16,7 @@ import './index.css'
 import 'highlight.js/styles/github.css'
 import './assets/styles/code.css'
 import './assets/styles/markdown.css'
+import './assets/styles/global.scss'
 
 const app = createApp(App)
 

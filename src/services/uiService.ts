@@ -106,6 +106,12 @@ export const formatMessageWithCodeBlocks = (content: string): string => {
  * 显示复制成功提示
  */
 export const showCopyTooltip = (text: string): void => {
+  // 移除可能已存在的提示
+  const existingToast = document.querySelector('.copy-toast');
+  if (existingToast) {
+    document.body.removeChild(existingToast);
+  }
+
   const toast = document.createElement('div');
   toast.className = 'copy-toast';
 
@@ -123,15 +129,21 @@ export const showCopyTooltip = (text: string): void => {
 
   document.body.appendChild(toast);
 
-  setTimeout(() => {
-    toast.classList.add('show');
-    setTimeout(() => {
-      toast.classList.remove('show');
+  // 使用requestAnimationFrame确保DOM更新后再添加show类
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      toast.classList.add('show');
+
       setTimeout(() => {
-        document.body.removeChild(toast);
-      }, 300);
-    }, 1700);
-  }, 0);
+        toast.classList.remove('show');
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }, 2000); // 延长显示时间到2秒
+    });
+  });
 };
 
 /**
@@ -139,8 +151,34 @@ export const showCopyTooltip = (text: string): void => {
  */
 export const copyToClipboard = async (text: string): Promise<void> => {
   try {
-    await navigator.clipboard.writeText(text);
-    showCopyTooltip('复制成功');
+    // 尝试使用现代的 Clipboard API
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      showCopyTooltip('复制成功');
+    } else {
+      // 回退到传统方法
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+
+      // 设置样式使元素不可见
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+
+      // 执行复制命令
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+
+      if (successful) {
+        showCopyTooltip('复制成功');
+      } else {
+        showCopyTooltip('复制失败，请手动复制');
+      }
+    }
   } catch (err) {
     console.error('复制失败:', err);
     showCopyTooltip('复制失败，请手动复制');

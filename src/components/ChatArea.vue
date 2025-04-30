@@ -11,7 +11,7 @@
             {{ chatTypeTitle }}
           </span>
         </div>
-        <div class="flex-1">
+        <div class="flex-1 search-container-wrapper">
           <SearchBar
             :conversations="recentConversations"
             :currentConversation="conversation"
@@ -103,7 +103,7 @@
                     <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
                       <img :src="iconVolume" alt="朗读" class="w-4 h-4" />
                     </div>
-                    <div class="p-1 rounded cursor-pointer hover:bg-gray-100" @click="copyText(message.content)">
+                    <div class="p-1 rounded cursor-pointer hover:bg-gray-100" @click="copyText(message.content)" data-action="copy">
                       <img :src="iconCopy" alt="复制" class="w-4 h-4" />
                     </div>
                     <div class="p-1 rounded cursor-pointer hover:bg-gray-100">
@@ -215,6 +215,7 @@ import iconCode from '../assets/icons/icon-code.svg';
 import iconImage from '../assets/icons/icon-image.svg';
 import logoAI from '../assets/icons/logo.svg';
 import avatarUser from '../assets/icons/user-avatar.svg';
+import iconCheck from '../assets/icons/icon-check.svg';
 
 // 定义组件属性
 const props = defineProps({
@@ -359,6 +360,18 @@ const cancelRequest = () => {
 // 复制文本
 const copyText = (text: string) => {
   copyToClipboard(text);
+  
+  // 添加用户视觉反馈
+  const copyButtons = document.querySelectorAll('.p-1[data-action="copy"]');
+  copyButtons.forEach(button => {
+    const originalIcon = button.innerHTML;
+    button.innerHTML = `<img src="${iconCheck}" alt="已复制" class="w-4 h-4" />`;
+    
+    // 2秒后恢复原始图标
+    setTimeout(() => {
+      button.innerHTML = originalIcon;
+    }, 2000);
+  });
 };
 
 // 处理搜索结果选择
@@ -395,6 +408,24 @@ const scrollToMessage = (messageIndex: number) => {
 </script>
 
 <style lang="scss" scoped>
+.page-header {
+  background-color: white;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f2f3f5;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.search-container-wrapper {
+  transition: all 0.3s;
+  min-width: 180px;
+}
+
+.search-container-wrapper:hover {
+  flex: 1;
+}
+
 .copy-toast.show {
   opacity: 1;
   transform: translate(-50%, 0);

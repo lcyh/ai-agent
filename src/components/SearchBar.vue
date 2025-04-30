@@ -1,13 +1,18 @@
 <template>
-  <div class="search-container">
+  <div 
+    class="search-container" 
+    :class="{'search-expanded': isExpanded || searchQuery}"
+    @mouseenter="isExpanded = true"
+    @mouseleave="!searchQuery && (isExpanded = false)"
+  >
     <div class="search-input-wrapper">
       <input
         ref="searchInput"
         v-model="searchQuery"
         class="search-input"
         type="text"
-        :placeholder="placeholder"
-        @focus="showSuggestions = true"
+        :placeholder="isExpanded ? placeholder : '搜索...'"
+        @focus="showSuggestions = true; isExpanded = true"
         @keydown.enter="performSearch"
         @keydown.escape="clearSearch"
         @keydown.down="navigateSuggestion(1)"
@@ -143,7 +148,9 @@
           </div>
           
           <div class="result-content">
-            <span class="result-role">{{ result.message.role === 'user' ? '用户' : 'AI' }}</span>
+            <span class="result-role" :class="result.message.role === 'user' ? 'user-role' : 'ai-role'">
+              {{ result.message.role === 'user' ? '用户' : 'AI' }}
+            </span>
             <p class="result-text" v-html="highlightMatch(result.matchedText, searchQuery)"></p>
           </div>
         </div>
@@ -205,6 +212,7 @@ const showSuggestions = ref(false);
 const showFilters = ref(false);
 const showResults = ref(false);
 const selectedIndex = ref(-1);
+const isExpanded = ref(false);
 const searchOptions = ref<SearchOptions>({
   currentOnly: false,
   messageType: 'all',
@@ -272,6 +280,7 @@ const clearSearch = () => {
   showSuggestions.value = false;
   showResults.value = false;
   selectedIndex.value = -1;
+  isExpanded.value = false;
   
   emit('clear');
 };
@@ -362,8 +371,13 @@ onMounted(() => {
 <style scoped>
 .search-container {
   position: relative;
-  width: 100%;
+  width: 180px;
   font-size: 14px;
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.search-expanded {
+  width: 100%;
 }
 
 .search-input-wrapper {
@@ -378,16 +392,30 @@ onMounted(() => {
   height: 36px;
   padding: 0 36px 0 12px;
   border: 1px solid #e5e6eb;
-  border-radius: 4px;
+  border-radius: 18px;
   background-color: #f7f8fa;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .search-input:focus {
   background-color: #fff;
   border-color: #94bfff;
-  box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
   outline: none;
+  animation: focusPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes focusPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(22, 93, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0);
+  }
 }
 
 .clear-button, 
@@ -403,24 +431,63 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0.7;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
 }
 
 .clear-button {
   right: 36px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.clear-button:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.search-button:hover {
+  opacity: 1;
+  background-color: rgba(22, 93, 255, 0.1);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.search-button:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .suggestions-container {
   position: absolute;
-  top: 40px;
+  top: 42px;
   left: 0;
   width: 100%;
   max-height: 300px;
   overflow-y: auto;
   background-color: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.08),
+    0 9px 28px 0 rgba(0, 0, 0, 0.05),
+    0 12px 48px 16px rgba(0, 0, 0, 0.03);
   z-index: 100;
+  animation: slideDown 0.2s ease-out;
+  border: 1px solid rgba(229, 230, 235, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .suggestion-category {
@@ -430,40 +497,49 @@ onMounted(() => {
   padding: 8px 12px;
   color: #86909c;
   font-size: 12px;
-  background-color: #f8f9fa;
+  background-color: rgba(248, 249, 250, 0.6);
+  border-bottom: 1px solid rgba(229, 230, 235, 0.5);
 }
 
 .suggestion-item {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 12px;
   cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 8px;
+  margin: 3px 6px;
 }
 
 .suggestion-item:hover,
 .suggestion-active {
-  background-color: #f2f3f5;
+  background-color: rgba(22, 93, 255, 0.05);
+  color: #165dff;
 }
 
 .filters-container {
   position: absolute;
-  top: 40px;
+  top: 42px;
   left: 0;
   width: 100%;
   background-color: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.08),
+    0 9px 28px 0 rgba(0, 0, 0, 0.05),
+    0 12px 48px 16px rgba(0, 0, 0, 0.03);
   z-index: 100;
-  padding: 12px;
+  padding: 16px;
+  animation: slideDown 0.3s ease-out;
+  border: 1px solid rgba(229, 230, 235, 0.7);
 }
 
 .filter-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-weight: 500;
+  color: #1d2129;
 }
 
 .filter-toggle-button {
@@ -472,55 +548,77 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   padding: 0;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.filter-toggle-button:hover {
+  color: #4080ff;
 }
 
 .filter-section {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .filter-label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   color: #4e5969;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .filter-options {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .filter-option {
   display: flex;
   align-items: center;
   cursor: pointer;
+  transition: color 0.2s;
+}
+
+.filter-option:hover {
+  color: #165dff;
 }
 
 .filter-option input {
-  margin-right: 4px;
+  margin-right: 6px;
+  accent-color: #165dff;
 }
 
 .filter-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .primary-button,
 .secondary-button {
-  padding: 4px 12px;
-  border-radius: 4px;
+  padding: 6px 14px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
+  transition: all 0.2s;
+  font-weight: 500;
 }
 
 .primary-button {
   background-color: #165dff;
   color: #fff;
   border: none;
+  box-shadow: 0 2px 5px rgba(22, 93, 255, 0.2);
+}
+
+.primary-button:hover {
+  background-color: #4080ff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(22, 93, 255, 0.3);
 }
 
 .secondary-button {
@@ -529,28 +627,55 @@ onMounted(() => {
   border: 1px solid #e5e6eb;
 }
 
+.secondary-button:hover {
+  background-color: #e5e6eb;
+  color: #1d2129;
+}
+
 .results-container {
   position: absolute;
-  top: 40px;
+  top: 42px;
   left: 0;
   width: 100%;
-  max-height: 400px;
+  max-height: 450px;
   overflow-y: auto;
   background-color: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.1),
+    0 9px 28px 0 rgba(0, 0, 0, 0.05),
+    0 12px 48px 16px rgba(0, 0, 0, 0.03);
   z-index: 100;
+  animation: slideDown 0.3s ease-out;
+  border: 1px solid rgba(229, 230, 235, 0.7);
+  scrollbar-width: thin;
+  scrollbar-color: #e5e6eb transparent;
+}
+
+.results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.results-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+  background-color: #e5e6eb;
+  border-radius: 3px;
 }
 
 .results-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
-  background-color: #f8f9fa;
+  padding: 14px 16px;
+  background-color: rgba(248, 249, 250, 0.8);
   border-bottom: 1px solid #e5e6eb;
   font-size: 13px;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
 .close-results-button {
@@ -559,31 +684,54 @@ onMounted(() => {
   border: none;
   cursor: pointer;
   padding: 0;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.close-results-button:hover {
+  color: #4080ff;
 }
 
 .results-list {
-  padding: 8px 0;
+  padding: 6px;
 }
 
 .result-item {
-  padding: 10px 12px;
+  padding: 12px;
   cursor: pointer;
-  border-bottom: 1px solid #f2f3f5;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease-out;
+  animation-fill-mode: both;
 }
 
-.result-item:last-child {
-  border-bottom: none;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.result-item:hover {
-  background-color: #f8f9fa;
-}
+/* 添加搜索结果项的交错动画 */
+.result-item:nth-child(1) { animation-delay: 0.1s; }
+.result-item:nth-child(2) { animation-delay: 0.15s; }
+.result-item:nth-child(3) { animation-delay: 0.2s; }
+.result-item:nth-child(4) { animation-delay: 0.25s; }
+.result-item:nth-child(5) { animation-delay: 0.3s; }
+.result-item:nth-child(n+6) { animation-delay: 0.35s; }
 
 .result-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .result-title {
@@ -606,13 +754,25 @@ onMounted(() => {
   color: #165dff;
   font-size: 12px;
   white-space: nowrap;
-  padding-top: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.user-role {
+  background-color: rgba(22, 93, 255, 0.1);
+  color: #165dff;
+}
+
+.ai-role {
+  background-color: rgba(0, 180, 42, 0.1);
+  color: #00b42a;
 }
 
 .result-text {
   color: #4e5969;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -623,26 +783,29 @@ onMounted(() => {
 
 .no-results {
   position: absolute;
-  top: 40px;
+  top: 42px;
   left: 0;
   width: 100%;
-  padding: 16px;
+  padding: 24px 16px;
   background-color: #fff;
-  border: 1px solid #e5e6eb;
-  border-radius: 4px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.08),
+    0 9px 28px 0 rgba(0, 0, 0, 0.05);
   z-index: 100;
   text-align: center;
+  animation: slideDown 0.3s ease-out;
+  border: 1px solid rgba(229, 230, 235, 0.7);
 }
 
 .no-results p {
   margin: 0;
+  color: #1d2129;
 }
 
 .no-results-tips {
   font-size: 12px;
   color: #86909c;
-  margin-top: 4px !important;
+  margin-top: 6px !important;
 }
 
 .clear-history-button {
@@ -652,13 +815,52 @@ onMounted(() => {
   cursor: pointer;
   padding: 0;
   font-size: 12px;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.clear-history-button:hover {
+  color: #4080ff;
 }
 
 /* 高亮匹配的文本 */
 :deep(.highlight-match) {
-  background-color: rgba(22, 93, 255, 0.2);
+  background-color: rgba(22, 93, 255, 0.15);
   font-weight: 500;
   padding: 0 1px;
   border-radius: 2px;
+  color: #165dff;
+  position: relative;
+  display: inline-block;
+  animation: highlightFade 1.5s ease-out;
+}
+
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(22, 93, 255, 0.3);
+  }
+  100% {
+    background-color: rgba(22, 93, 255, 0.15);
+  }
+}
+
+.result-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background-color: #f2f3f5;
+}
+
+.result-item:last-child::after {
+  display: none;
+}
+
+.result-item:hover {
+  background-color: rgba(248, 249, 250, 0.8);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 </style> 
