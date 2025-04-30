@@ -5,6 +5,7 @@
 import type { Message } from '../types/chat';
 import type { ModelType } from '../types/api';
 import { deepseekApi, siliconFlowApi } from '../api/ai';
+import dayjs from 'dayjs';
 
 // 默认欢迎消息
 export const DEFAULT_WELCOME_MESSAGE: Message = {
@@ -108,10 +109,7 @@ export async function simulateSearchResponse(
  * 格式化时间
  */
 export const formatTime = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
+  return dayjs(timestamp).format('HH:mm');
 };
 
 /**
