@@ -42,7 +42,7 @@ import {
   processModelResponse,
   simulateSearchResponse
 } from '../services/messageService';
-import { scrollToBottom, debouncedScroll, setupCodeBlockEventListeners } from '../services/uiService';
+import { scrollToBottom, debouncedScroll, throttledResize, setupCodeBlockEventListeners } from '../services/uiService';
 import { useConversationManager } from '../services/conversationService';
 import SideNavigation from '../components/SideNavigation.vue';
 import ChatArea from '../components/ChatArea.vue';
@@ -212,9 +212,9 @@ onMounted(() => {
   // 初始检测设备类型
   checkMobile();
   
-  // 监听窗口大小变化
+  // 监听窗口大小变化，使用节流函数
   window.addEventListener('resize', () => {
-    checkMobile();
+    throttledResize(checkMobile);
   });
   
   scrollToBottom();

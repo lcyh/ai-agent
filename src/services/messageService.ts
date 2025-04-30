@@ -161,24 +161,6 @@ export const withTimeout = async <T>(promise: Promise<T>, ms = REQUEST_TIMEOUT):
 };
 
 /**
- * 防抖函数
- */
-export function debounce<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number
-): (...args: Parameters<T>) => void {
-  let timer: number | null = null;
-
-  return function (...args: Parameters<T>) {
-    if (timer) clearTimeout(timer);
-    timer = window.setTimeout(() => {
-      fn(...args);
-      timer = null;
-    }, delay);
-  };
-}
-
-/**
  * 处理响应错误
  */
 export const handleResponseError = (
@@ -201,4 +183,4 @@ export const handleResponseError = (
       streaming: false
     };
   }
-}; 
+};

@@ -4,7 +4,7 @@
  */
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
-import { debounce } from './messageService';
+import { debounce, throttle } from 'lodash-es';
 
 /**
  * 滚动到底部
@@ -36,6 +36,18 @@ export const scrollToBottom = (): void => {
  * 节流的滚动函数
  */
 export const debouncedScroll = debounce(scrollToBottom, 100);
+
+/**
+ * 窗口调整大小处理函数
+ */
+export const handleWindowResize = (callback: () => void): void => {
+  callback();
+};
+
+/**
+ * 节流的窗口调整大小函数
+ */
+export const throttledResize = throttle(handleWindowResize, 250);
 
 /**
  * 初始化Markdown渲染器
