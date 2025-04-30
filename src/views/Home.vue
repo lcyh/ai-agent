@@ -252,8 +252,8 @@
                 :class="selectedModel === 'web' ? 'bg-[#EFF3FF] border border-[#94BFFF]' : 'bg-[#F7F8FA]'"
                 @click="selectModel('web')"
               >
-                <img src="../assets/icons/icon-global.svg" class="w-4 h-4" alt="联网搜索" />
-                <span class="text-[#1D2129]">联网搜索</span>
+                <img src="../assets/icons/icon-global.svg" class="w-4 h-4" alt="按需搜索网页" />
+                <span class="text-[#1D2129]">按需搜索网页</span>
               </div>
             </div>
             
