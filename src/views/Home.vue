@@ -1,7 +1,8 @@
 <template>
-  <div class="flex h-screen bg-[#F1F6FB]">
+  <div class="flex h-screen bg-[#F1F6FB]" :class="{'text-sm': isMobile}">
     <!-- 左侧导航栏 -->
     <aside 
+      v-if="!isMobile || !isCollapsed"
       class="flex flex-col justify-between h-full bg-[#F1F6FB] p-3 py-3 transition-all duration-300" 
       :class="isCollapsed ? 'w-[80px]' : 'w-[240px]'"
     >
@@ -100,14 +101,17 @@
     </aside>
 
     <!-- 主内容区 -->
-    <main class="flex-1 flex flex-col relative bg-white rounded-xl mx-4 my-3">
+    <main class="flex-1 flex flex-col relative bg-white rounded-xl" :class="isMobile ? 'mx-1 my-1' : 'mx-4 my-3'">
       <!-- 页头 -->
       <div class="flex justify-between items-center p-2.5 px-4 border-b border-[#F2F3F5] absolute top-0 left-0 right-0 bg-white z-10 rounded-t-xl">
         <div class="flex items-center gap-6">
-          <div class="px-2 py-1">
-            <span class="text-base font-medium text-[#1D2129]">这是一段对话</span>
+          <div v-if="isMobile" class="cursor-pointer p-1" @click="isCollapsed = !isCollapsed">
+            <img src="../assets/icons/icon-menu.svg" class="w-5 h-5" alt="菜单" onerror="this.src='../assets/icons/icon-more.svg'"/>
           </div>
-          <div class="flex items-center gap-2 bg-[#F2F3F5] px-3 py-1.5 rounded">
+          <div class="px-2 py-1">
+            <span class="text-base font-medium text-[#1D2129]" :class="{'text-sm': isMobile}">这是一段对话</span>
+          </div>
+          <div v-if="!isMobile" class="flex items-center gap-2 bg-[#F2F3F5] px-3 py-1.5 rounded">
             <img src="../assets/icons/icon-search.svg" alt="搜索" class="w-4 h-4" />
             <span class="text-[#86909C]">搜索</span>
           </div>
@@ -313,6 +317,13 @@ interface ConversationHistory {
   messages: Message[];
 }
 
+// 搜索结果接口定义
+interface SearchResult {
+  title: string;
+  url: string;
+  source: string; // 来源：知乎或掘金
+}
+
 // 状态变量
 const isCollapsed = ref(false);
 const inputMessage = ref('');
@@ -321,6 +332,15 @@ const isLoading = ref(false);
 const abortController = ref<AbortController | null>(null);
 const activeConversationId = ref<string>('default');
 const historyConversations = ref<ConversationHistory[]>([]);
+const isMobile = ref(false); // 是否为移动设备
+
+// 检测移动设备
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768;
+  if (isMobile.value) {
+    isCollapsed.value = true; // 在移动设备上自动折叠导航栏
+  }
+};
 
 // 获取当前激活的对话
 const currentConversation = computed(() => {
@@ -695,6 +715,12 @@ onMounted(() => {
     });
   }
   
+  // 初始检测设备类型
+  checkMobile();
+  
+  // 监听窗口大小变化
+  window.addEventListener('resize', debounce(checkMobile, 250));
+  
   scrollToBottom();
   setupCodeBlockEventListeners();
 });
@@ -968,5 +994,34 @@ onMounted(() => {
 .relative:hover .tooltip {
   visibility: visible;
   opacity: 1;
+}
+
+/* 移动设备响应式样式 */
+@media (max-width: 767px) {
+  .message-content h1,
+  .message-content h2 {
+    font-size: 1.1rem;
+  }
+  
+  .message-content h3,
+  .message-content h4,
+  .message-content h5,
+  .message-content h6 {
+    font-size: 1rem;
+  }
+  
+  .message-content p,
+  .message-content li {
+    font-size: 0.875rem;
+  }
+  
+  .code-block-container {
+    margin: 0.5rem 0;
+  }
+  
+  .code-block-body pre {
+    font-size: 0.75rem;
+    padding: 10px;
+  }
 }
 </style> 
