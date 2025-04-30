@@ -1,14 +1,14 @@
-@import "./variables.scss";
+@use "./variables" as vars;
 
 // 代码块样式
 .code-block-container {
-  font-family: $font-family-code;
-  border-radius: $border-radius-md;
+  font-family: vars.$font-family-code;
+  border-radius: vars.$border-radius-md;
   overflow: hidden;
   margin: 1rem 0;
-  background-color: $code-bg;
-  border: 1px solid $code-border;
-  box-shadow: $shadow-sm;
+  background-color: vars.$code-bg;
+  border: 1px solid vars.$code-border;
+  box-shadow: vars.$shadow-sm;
 }
 
 .code-block-header {
@@ -16,14 +16,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 12px;
-  background-color: $code-header-bg;
-  border-bottom: 1px solid $code-border;
+  background-color: vars.$code-header-bg;
+  border-bottom: 1px solid vars.$code-border;
 }
 
 .code-lang-tag {
   font-size: 0.75rem;
   font-weight: 600;
-  color: $text-secondary;
+  color: vars.$text-secondary;
   text-transform: uppercase;
 }
 
@@ -37,18 +37,18 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  color: $text-tertiary;
+  color: vars.$text-tertiary;
   background-color: transparent;
   border: none;
   padding: 4px 8px;
-  border-radius: $border-radius-sm;
+  border-radius: vars.$border-radius-sm;
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: $code-border;
-    color: $text-secondary;
+    background-color: vars.$code-border;
+    color: vars.$text-secondary;
   }
 
   &:focus {
@@ -68,7 +68,7 @@
     background-color: transparent;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: $text-primary;
+    color: vars.$text-primary;
     flex-grow: 1;
   }
 
@@ -76,7 +76,7 @@
     background-color: transparent;
     padding: 0;
     white-space: pre;
-    font-family: $font-family-code;
+    font-family: vars.$font-family-code;
     tab-size: 2;
   }
 }
@@ -86,11 +86,11 @@
   flex-direction: column;
   align-items: flex-end;
   padding: 16px 8px 16px 12px;
-  background-color: $code-header-bg;
-  color: $text-tertiary;
+  background-color: vars.$code-header-bg;
+  color: vars.$text-tertiary;
   user-select: none;
   font-size: 0.875rem;
-  border-right: 1px solid $code-border;
+  border-right: 1px solid vars.$code-border;
   text-align: right;
   min-width: 40px;
 
@@ -103,15 +103,15 @@
 // 语法高亮颜色
 .hljs {
   background-color: transparent;
-  color: $text-primary;
+  color: vars.$text-primary;
 
   &-keyword,
   &-selector-tag {
-    color: $code-keyword;
+    color: vars.$code-keyword;
   }
 
   &-built_in {
-    color: $info-color;
+    color: vars.$info-color;
   }
 
   &-string,
@@ -120,28 +120,28 @@
   &-attribute,
   &-literal,
   &-addition {
-    color: $code-string;
+    color: vars.$code-string;
   }
 
   &-comment,
   &-quote,
   &-deletion {
-    color: $code-comment;
+    color: vars.$code-comment;
   }
 
   &-number,
   &-variable {
-    color: $code-number;
+    color: vars.$code-number;
   }
 
   &-function,
   &-title.function_ {
-    color: $code-function;
+    color: vars.$code-function;
   }
 
   &-attr,
   &-property {
-    color: $code-property;
+    color: vars.$code-property;
   }
 }
 
@@ -151,16 +151,16 @@
   top: 20px;
   left: 50%;
   transform: translate(-50%, -100%);
-  background-color: $bg-white;
-  color: $text-primary;
+  background-color: vars.$bg-white;
+  color: vars.$text-primary;
   padding: 10px 16px;
-  border-radius: $border-radius-md;
+  border-radius: vars.$border-radius-md;
   z-index: 9999;
   opacity: 0;
   transition: all 0.3s ease;
   pointer-events: none;
-  box-shadow: $shadow-md;
-  border: 1px solid $border-light;
+  box-shadow: vars.$shadow-md;
+  border: 1px solid vars.$border-light;
   font-size: 14px;
   max-width: 300px;
   text-align: center;
@@ -172,12 +172,12 @@
 
   .toast-icon {
     display: inline-flex;
-    color: $primary-color;
+    color: vars.$primary-color;
   }
 }
 
 // 响应式调整
-@media (max-width: $breakpoint-mobile) {
+@media (max-width: vars.$breakpoint-mobile) {
   .code-block-container {
     margin: 0.5rem 0;
   }

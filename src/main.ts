@@ -8,9 +8,11 @@ import App from './App.vue'
 import router from './router'
 import pinia from './stores'
 import Antd from 'ant-design-vue'
+
+// 导入样式，确保全局样式变量先被加载
+import './assets/styles/index.scss'
 import 'ant-design-vue/dist/reset.css'
 import './index.css'
-import './assets/styles/index.scss'
 import 'highlight.js/styles/github.css'
 import './assets/styles/code.css'
 import './assets/styles/markdown.css'

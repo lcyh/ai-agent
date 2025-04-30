@@ -1,14 +1,14 @@
-@import "./variables.scss";
+@use "./variables" as vars;
 
 // 为文本代码增加样式
 .message-content {
   p code,
   li code {
-    background-color: $primary-bg-light;
+    background-color: vars.$primary-bg-light;
     padding: 2px 4px;
-    border-radius: $border-radius-sm;
-    color: $primary-color;
-    font-family: $font-family-code;
+    border-radius: vars.$border-radius-sm;
+    color: vars.$primary-color;
+    font-family: vars.$font-family-code;
     font-size: 0.85em;
   }
 
@@ -19,7 +19,7 @@
   h4,
   h5,
   h6 {
-    color: $text-primary;
+    color: vars.$text-primary;
     margin-top: 1.5rem;
     margin-bottom: 0.75rem;
     font-weight: 600;
@@ -41,7 +41,7 @@
   }
 
   a {
-    color: $primary-color;
+    color: vars.$primary-color;
     text-decoration: none;
 
     &:hover {
@@ -50,29 +50,29 @@
   }
 
   blockquote {
-    border-left: 4px solid $border-color;
+    border-left: 4px solid vars.$border-color;
     padding-left: 1rem;
-    color: $text-secondary;
+    color: vars.$text-secondary;
     margin: 1rem 0;
   }
 }
 
 // 聊天气泡样式
 .user-bubble {
-  background-color: $primary-color;
-  color: $text-white;
+  background-color: vars.$primary-color;
+  color: vars.$text-white;
   padding: 5px 16px;
-  border-radius: $border-radius-md;
+  border-radius: vars.$border-radius-md;
   max-width: 100%;
-  box-shadow: $shadow-sm;
+  box-shadow: vars.$shadow-sm;
 }
 
 .ai-bubble {
-  background-color: $bg-white;
-  border: 1px solid $border-light;
+  background-color: vars.$bg-white;
+  border: 1px solid vars.$border-light;
   padding: 12px 16px;
-  border-radius: $border-radius-md;
-  box-shadow: $shadow-sm;
+  border-radius: vars.$border-radius-md;
+  box-shadow: vars.$shadow-sm;
 }
 
 // 建议按钮样式
@@ -80,19 +80,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid $border-light;
-  border-radius: $border-radius-md;
+  border: 1px solid vars.$border-light;
+  border-radius: vars.$border-radius-md;
   padding: 8px 12px;
   cursor: pointer;
   transition: background-color 0.2s;
 
   &:hover {
-    background-color: $bg-light;
+    background-color: vars.$bg-light;
   }
 }
 
 // 响应式调整
-@media (max-width: $breakpoint-mobile) {
+@media (max-width: vars.$breakpoint-mobile) {
   .message-content {
     h1,
     h2 {

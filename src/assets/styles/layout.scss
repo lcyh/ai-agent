@@ -1,4 +1,4 @@
-@import "./variables.scss";
+@use "./variables" as vars;
 
 // 通用容器样式
 .container {
@@ -11,7 +11,7 @@
 .main-layout {
   display: flex;
   height: 100vh;
-  background-color: $bg-color;
+  background-color: vars.$bg-color;
 }
 
 // 侧边栏样式
@@ -20,16 +20,16 @@
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
-  background-color: $bg-color;
+  background-color: vars.$bg-color;
   padding: 12px;
   transition: width 0.3s ease;
 
   &--expanded {
-    width: $sidebar-width;
+    width: vars.$sidebar-width;
   }
 
   &--collapsed {
-    width: $sidebar-collapsed-width;
+    width: vars.$sidebar-collapsed-width;
   }
 }
 
@@ -39,8 +39,8 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  background-color: $bg-white;
-  border-radius: $border-radius-lg;
+  background-color: vars.$bg-white;
+  border-radius: vars.$border-radius-lg;
   overflow: hidden;
 }
 
@@ -50,7 +50,7 @@
   overflow-y: auto;
   padding: 70px 6px 160px 6px;
 
-  @media (min-width: $breakpoint-mobile) {
+  @media (min-width: vars.$breakpoint-mobile) {
     padding: 70px 100px 160px 100px;
   }
 
@@ -66,15 +66,15 @@
   align-items: center;
   padding: 15px 16px;
   height: 60px;
-  border-bottom: 1px solid $border-light;
+  border-bottom: 1px solid vars.$border-light;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  background-color: $bg-white;
+  background-color: vars.$bg-white;
   z-index: 10;
-  border-top-left-radius: $border-radius-lg;
-  border-top-right-radius: $border-radius-lg;
+  border-top-left-radius: vars.$border-radius-lg;
+  border-top-right-radius: vars.$border-radius-lg;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
@@ -84,14 +84,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: $bg-white;
-  border-top: 1px solid $border-light;
+  background-color: vars.$bg-white;
+  border-top: 1px solid vars.$border-light;
   padding: 16px;
-  box-shadow: $shadow-md;
+  box-shadow: vars.$shadow-md;
 }
 
 // 移动端样式调整
-@media (max-width: $breakpoint-mobile) {
+@media (max-width: vars.$breakpoint-mobile) {
   .main-layout {
     font-size: 0.875rem;
   }

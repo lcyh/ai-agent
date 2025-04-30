@@ -1,4 +1,4 @@
-@import "./variables.scss";
+@use "./variables" as vars;
 
 // 工具提示样式
 .tooltip {
@@ -6,9 +6,9 @@
   position: absolute;
   z-index: 999;
   background-color: rgba(0, 0, 0, 0.75);
-  color: $text-white;
+  color: vars.$text-white;
   padding: 4px 8px;
-  border-radius: $border-radius-sm;
+  border-radius: vars.$border-radius-sm;
   font-size: 12px;
   white-space: nowrap;
   left: 100%;
