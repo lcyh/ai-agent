@@ -25,25 +25,14 @@
         </div>
       </div>
 
-      <!-- 新建对话按钮 -->
-      <a-button type="primary" class="flex items-center justify-center h-10 w-full relative" :style="{ backgroundColor: '$primary-color' }" @click="createNewConversation('general')">
-        <img src="../assets/icons/icon-add.svg" alt="新建" class="w-4 h-4" :class="isCollapsed ? '' : 'mr-2'" />
-        <span v-if="!isCollapsed">创建新对话</span>
-        <div v-if="isCollapsed" class="tooltip">创建新对话</div>
-      </a-button>
-
-      <!-- 功能列表 -->
-      <div class="flex flex-col gap-0.5">
-        <div 
-          class="flex items-center gap-2 p-[9px] px-3 rounded hover:bg-white cursor-pointer relative"
-          :class="{'bg-white': activeChatType === 'agent'}"
-          @click="switchToChatType('agent')"
-        >
-          <img src="../assets/icons/icon-agent.svg" alt="AI Agent" class="w-4 h-4" />
-          <span v-if="!isCollapsed" class="text-[#1D2129]">AI Agent</span>
-          <div v-if="isCollapsed" class="tooltip">AI Agent</div>
+      <!-- 开启新对话按钮 -->
+      <a-button type="primary" class="new-chat-button flex items-center justify-center h-10 w-full relative" :style="{ backgroundColor: '$primary-color' }" @click="createNewConversation('general')">
+        <div class="flex items-center justify-center">
+          <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-4 h-4" :class="isCollapsed ? '' : 'mr-2'" />
+          <span v-if="!isCollapsed">开启新对话</span>
         </div>
-      </div>
+        <div v-if="isCollapsed" class="tooltip">开启新对话</div>
+      </a-button>
 
       <div class="w-full h-px bg-[#E5E6EB]"></div>
 
@@ -217,11 +206,6 @@ const switchConversation = (id: string) => {
   emit('switch-conversation', id);
 };
 
-// 切换对话类型
-const switchToChatType = (type: ChatType) => {
-  emit('switch-chat-type', type);
-};
-
 // 清空所有对话
 const clearAllConversations = () => {
   showMoreOptions.value = false; // 关闭菜单
@@ -234,9 +218,7 @@ const clearAllConversations = () => {
 
 // 按当前活跃的聊天类型过滤对话
 const filteredConversations = computed(() => {
-  return props.activeChatType === 'general' || props.activeChatType === 'agent'
-    ? props.recentConversations.filter(conv => conv.chatType === props.activeChatType)
-    : props.recentConversations;
+  return props.recentConversations;
 });
 
 // 生成对话标题（如果没有标题）
@@ -331,6 +313,27 @@ const olderConversations = computed(() => {
 // 当鼠标悬停在带有工具提示的元素上时显示工具提示
 .relative:hover .tooltip {
   display: block;
+}
+
+// 新对话按钮样式
+.new-chat-button {
+  background-color: #165dff !important;
+  color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 2px 5px rgba(22, 93, 255, 0.2);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #4080ff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(22, 93, 255, 0.3);
+  }
+  
+  &:active {
+    transform: translateY(1px);
+  }
 }
 
 .conversation-list {
