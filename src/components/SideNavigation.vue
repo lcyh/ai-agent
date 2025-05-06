@@ -5,34 +5,69 @@
     :class="isCollapsed ? 'sidebar--collapsed' : 'sidebar--expanded'"
   >
     <div class="flex flex-col gap-4">
-      <!-- Logo -->
-      <div class="flex justify-between items-center w-full">
+      <!-- Logo 和折叠按钮 -->
+      <div v-if="!isCollapsed" class="flex justify-between items-center w-full">
         <div class="flex items-center gap-2">
           <div class="relative">
             <img src="../assets/icons/logo.svg" class="w-6 h-6 rounded-full" alt="Logo" />
-            <div v-if="isCollapsed" class="tooltip">AI Agent</div>
           </div>
-          <span v-if="!isCollapsed" class="text-xl font-medium truncate">AI Agent</span>
+          <span class="text-xl font-medium truncate">AI Agent</span>
         </div>
         <div class="p-1 rounded cursor-pointer hover:bg-gray-100 relative" @click="toggleCollapse">
           <img 
             :src="expandIcon" 
             alt="折叠" 
-            class="w-5 h-5"
-            :class="isCollapsed ? 'rotate-180' : ''" 
+            class="w-5 h-5" 
           />
-          <div v-if="isCollapsed" class="tooltip">{{ isCollapsed ? '展开' : '折叠' }}</div>
+        </div>
+      </div>
+
+      <!-- 折叠时显示的垂直排列布局 -->
+      <div v-if="isCollapsed" class="flex flex-col items-center gap-6">
+        <!-- Logo -->
+        <div 
+          class="tooltip-wrapper"
+          @mouseenter="showTooltip($event, 'AI Agent')"
+          @mouseleave="hideTooltip"
+        >
+          <img src="../assets/icons/logo.svg" class="w-8 h-8 rounded-full cursor-pointer" alt="Logo" />
+        </div>
+        
+        <!-- 折叠按钮 -->
+        <div 
+          class="tooltip-wrapper"
+          @mouseenter="showTooltip($event, '展开导航')"
+          @mouseleave="hideTooltip"
+        >
+          <div class="p-1 rounded cursor-pointer hover:bg-gray-100" @click="toggleCollapse">
+            <img 
+              :src="expandIcon" 
+              alt="展开" 
+              class="w-5 h-5 rotate-180" 
+            />
+          </div>
         </div>
       </div>
 
       <!-- 开启新对话按钮 -->
-      <a-button type="primary" class="new-chat-button flex items-center justify-center h-10 w-full relative" :style="{ backgroundColor: '$primary-color' }" @click="createNewConversation('general')">
+      <a-button v-if="!isCollapsed" type="primary" class="new-chat-button flex items-center justify-center h-10 w-full relative" :style="{ backgroundColor: '$primary-color' }" @click="createNewConversation('general')">
         <div class="flex items-center justify-center">
-          <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-4 h-4" :class="isCollapsed ? '' : 'mr-2'" />
-          <span v-if="!isCollapsed">开启新对话</span>
+          <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-4 h-4 mr-2" />
+          <span>开启新对话</span>
         </div>
-        <div v-if="isCollapsed" class="tooltip">开启新对话</div>
       </a-button>
+
+      <!-- 折叠时的新对话按钮 -->
+      <div 
+        v-if="isCollapsed" 
+        class="tooltip-wrapper"
+        @mouseenter="showTooltip($event, '开启新对话')"
+        @mouseleave="hideTooltip"
+      >
+        <div class="p-2 rounded-full flex items-center justify-center cursor-pointer new-chat-icon" @click="createNewConversation('general')">
+          <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-5 h-5" />
+        </div>
+      </div>
 
       <div class="w-full h-px bg-[#E5E6EB]"></div>
 
@@ -129,23 +164,48 @@
         </div>
       </div>
       
-      <div v-else class="flex items-center p-[9px] px-3 rounded hover:bg-white cursor-pointer relative">
-        <img src="../assets/icons/icon-chat.svg" alt="对话历史" class="w-4 h-4" />
-        <div class="tooltip">对话历史</div>
+      <!-- 对话历史图标（折叠状态） -->
+      <div 
+        v-else 
+        class="tooltip-wrapper"
+        @mouseenter="showTooltip($event, '对话历史')"
+        @mouseleave="hideTooltip"
+      >
+        <div class="flex items-center p-[9px] px-3 rounded hover:bg-white cursor-pointer">
+          <img src="../assets/icons/icon-chat.svg" alt="对话历史" class="w-4 h-4" />
+        </div>
       </div>
     </div>
 
     <!-- 个人入口 -->
-    <div class="flex items-center gap-2 p-2 px-3 rounded hover:bg-white cursor-pointer relative">
+    <div v-if="!isCollapsed" class="flex items-center gap-2 p-2 px-3 rounded hover:bg-white cursor-pointer">
       <img src="../assets/icons/user-avatar.svg" class="w-6 h-6 rounded-full" alt="User" />
-      <span v-if="!isCollapsed" class="text-[#1D2129] truncate">lc</span>
-      <div v-if="isCollapsed" class="tooltip">lc</div>
+      <span class="text-[#1D2129] truncate">lc</span>
+    </div>
+
+    <!-- 折叠状态的个人入口 -->
+    <div 
+      v-else 
+      class="tooltip-wrapper"
+      @mouseenter="showTooltip($event, 'lc')"
+      @mouseleave="hideTooltip"
+    >
+      <div class="flex items-center rounded hover:bg-white cursor-pointer">
+        <img src="../assets/icons/user-avatar.svg" class="w-6 h-6 rounded-full" alt="User" />
+      </div>
     </div>
   </aside>
+  
+  <!-- 通过teleport将气泡提示渲染到body -->
+  <teleport to="body">
+    <div v-if="tooltipVisible" class="global-tooltip" :style="tooltipStyle">
+      {{ tooltipText }}
+    </div>
+  </teleport>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed, ref } from 'vue';
+import { defineProps, defineEmits, computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import expandIcon from '../assets/icons/expand.svg';
 import type { ChatType } from '../types/chat';
 import { formatTime } from '../services/messageService';
@@ -158,6 +218,44 @@ interface ConversationHistory {
   lastMessage: string;
   chatType: ChatType;
 }
+
+// 气泡提示状态
+const tooltipVisible = ref(false);
+const tooltipText = ref('');
+const tooltipStyle = ref({});
+let tooltipTimer: number | null = null;
+
+// 显示气泡提示
+const showTooltip = (event: MouseEvent, text: string) => {
+  if (tooltipTimer) {
+    window.clearTimeout(tooltipTimer);
+    tooltipTimer = null;
+  }
+  
+  const element = event.currentTarget as HTMLElement;
+  const rect = element.getBoundingClientRect();
+  
+  tooltipText.value = text;
+  tooltipStyle.value = {
+    top: `${rect.top + rect.height / 2}px`,
+    left: `${rect.right + 15}px`,
+  };
+  tooltipVisible.value = true;
+};
+
+// 隐藏气泡提示
+const hideTooltip = () => {
+  tooltipTimer = window.setTimeout(() => {
+    tooltipVisible.value = false;
+  }, 100);
+};
+
+// 在组件卸载前清除所有定时器
+onBeforeUnmount(() => {
+  if (tooltipTimer) {
+    window.clearTimeout(tooltipTimer);
+  }
+});
 
 // 定义组件属性
 const props = defineProps({
@@ -313,25 +411,44 @@ const olderConversations = computed(() => {
   width: 64px;
 }
 
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-wrapper:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
 .tooltip {
   position: absolute;
   left: 100%;
   top: 50%;
   transform: translateY(-50%);
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.8);
   color: white;
-  padding: 4px 8px;
+  padding: 6px 12px;
   border-radius: 4px;
   font-size: 12px;
   white-space: nowrap;
-  display: none;
-  margin-left: 8px;
-  z-index: 1000;
+  margin-left: 12px;
+  z-index: 9999; 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
-// 当鼠标悬停在带有工具提示的元素上时显示工具提示
-.relative:hover .tooltip {
-  display: block;
+.tooltip::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
 }
 
 // 新对话按钮样式
@@ -465,5 +582,53 @@ const olderConversations = computed(() => {
   &:hover {
     background-color: rgba(22, 93, 255, 0.15);
   }
+}
+
+// 新对话图标样式（折叠状态）
+.new-chat-icon {
+  background-color: #165dff;
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: relative; /* 确保相对定位 */
+  
+  &:hover {
+    background-color: #4080ff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(22, 93, 255, 0.3);
+  }
+  
+  img {
+    filter: brightness(0) invert(1);
+  }
+}
+
+.global-tooltip {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 99999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-50%);
+  pointer-events: none;
+  left: 70px;
+  margin-left: 15px;
+}
+
+.global-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
 }
 </style> 
