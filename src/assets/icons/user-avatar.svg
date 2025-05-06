@@ -1,24 +1,93 @@
 <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- 渐变定义 -->
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#DEB887" />
+      <stop offset="100%" stop-color="#CD9B1D" />
+    </linearGradient>
+    
+    <!-- 头发渐变 -->
+    <linearGradient id="hair-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9370DB" />
+      <stop offset="100%" stop-color="#6A5ACD" />
+    </linearGradient>
+    
+    <!-- 皮肤渐变 -->
+    <linearGradient id="skin-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFDEAD" />
+      <stop offset="100%" stop-color="#FFE4C4" />
+    </linearGradient>
+    
+    <!-- 眼睛渐变 -->
+    <linearGradient id="eye-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4B0082" />
+      <stop offset="100%" stop-color="#9370DB" />
+    </linearGradient>
+    
+    <!-- 金色边框渐变 -->
+    <linearGradient id="gold-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="50%" stop-color="#DAA520" />
+      <stop offset="100%" stop-color="#B8860B" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 金色外环 -->
+  <circle cx="50" cy="50" r="49" fill="url(#gold-gradient)" />
+  <circle cx="50" cy="50" r="45" fill="#FFF" />
+  <circle cx="50" cy="50" r="43" fill="url(#gold-gradient)" />
+  
   <!-- 背景圆形 -->
-  <circle cx="50" cy="50" r="50" fill="#F2A594" />
+  <circle cx="50" cy="50" r="40" fill="#E6C89C" />
   
-  <!-- 随机装饰元素 -->
-  <circle cx="25" cy="30" r="8" fill="#FFE0D8" />
-  <circle cx="75" cy="30" r="8" fill="#FFE0D8" />
-  <circle cx="35" cy="20" r="4" fill="#FFD1C3" />
-  <circle cx="65" cy="20" r="4" fill="#FFD1C3" />
+  <!-- 头发 - 后层 -->
+  <path d="M22,45 C22,25 35,15 50,15 C65,15 78,25 78,45 L78,70 C78,85 65,90 50,90 C35,90 22,85 22,70 Z" fill="url(#hair-gradient)" />
   
-  <!-- 用户形象 -->
-  <circle cx="50" cy="40" r="18" fill="#FFFFFF" />
-  <circle cx="40" cy="35" r="3" fill="#333333" />
-  <circle cx="60" cy="35" r="3" fill="#333333" />
+  <!-- 脸部 -->
+  <ellipse cx="50" cy="48" rx="22" ry="25" fill="url(#skin-gradient)" />
   
-  <!-- 微笑 -->
-  <path d="M40,50 Q50,60 60,50" stroke="#333333" stroke-width="2" fill="transparent" />
+  <!-- 长发前侧 -->
+  <path d="M28,40 C28,30 32,28 35,28 C40,28 30,50 30,60 C30,70 35,68 38,72 C28,85 22,80 22,60 C22,45 28,45 28,40 Z" fill="url(#hair-gradient)" />
+  <path d="M72,40 C72,30 68,28 65,28 C60,28 70,50 70,60 C70,70 65,68 62,72 C72,85 78,80 78,60 C78,45 72,45 72,40 Z" fill="url(#hair-gradient)" />
   
-  <!-- 头发 -->
-  <path d="M30,30 Q50,10 70,30" stroke="#333333" stroke-width="8" fill="transparent" />
+  <!-- 刘海 -->
+  <path d="M38,25 C42,20 58,20 62,25 C58,22 42,22 38,25 Z" fill="url(#hair-gradient)" />
+  <path d="M35,28 C40,36 60,36 65,28" stroke="url(#hair-gradient)" stroke-width="4" fill="none" />
   
-  <!-- 身体轮廓 -->
-  <path d="M30,70 Q50,90 70,70" fill="#E57F73" />
+  <!-- 白色衬衫领子 -->
+  <path d="M38,75 L50,85 L62,75" fill="#FFFFFF" />
+  <path d="M38,75 L50,85 L62,75" stroke="#EFEFEF" stroke-width="0.5" fill="none" />
+  
+  <!-- 眼睛外围 -->
+  <ellipse cx="42" cy="45" rx="6" ry="5" fill="#FFFFFF" />
+  <ellipse cx="58" cy="45" rx="6" ry="5" fill="#FFFFFF" />
+  
+  <!-- 眼睛 -->
+  <ellipse cx="42" cy="45" rx="3.5" ry="4" fill="url(#eye-gradient)" />
+  <ellipse cx="58" cy="45" rx="3.5" ry="4" fill="url(#eye-gradient)" />
+  
+  <!-- 瞳孔高光 -->
+  <circle cx="40.5" cy="43" r="1.5" fill="#FFFFFF" opacity="0.8" />
+  <circle cx="56.5" cy="43" r="1.5" fill="#FFFFFF" opacity="0.8" />
+  <circle cx="43" cy="46" r="0.8" fill="#FFFFFF" opacity="0.5" />
+  <circle cx="59" cy="46" r="0.8" fill="#FFFFFF" opacity="0.5" />
+  
+  <!-- 眉毛 -->
+  <path d="M37,38 C40,36 44,37 45,38" stroke="#5D478B" stroke-width="1.5" fill="none" />
+  <path d="M63,38 C60,36 56,37 55,38" stroke="#5D478B" stroke-width="1.5" fill="none" />
+  
+  <!-- 嘴巴 -->
+  <path d="M45,60 C48,63 52,63 55,60" stroke="#DB7093" stroke-width="1.5" fill="none" />
+  
+  <!-- 脸颊红晕 -->
+  <ellipse cx="35" cy="52" rx="4" ry="2" fill="#E6A9CB" opacity="0.3" />
+  <ellipse cx="65" cy="52" rx="4" ry="2" fill="#E6A9CB" opacity="0.3" />
+  
+  <!-- 鼻子提示 -->
+  <path d="M49.5,52 L50.5,54" stroke="#FFDEBC" stroke-width="1" fill="none" />
+  
+  <!-- 小装饰元素 -->
+  <circle cx="85" cy="25" r="3" fill="#FFFFFF" opacity="0.5" />
+  <circle cx="15" cy="75" r="2" fill="#FFFFFF" opacity="0.5" />
 </svg> 
