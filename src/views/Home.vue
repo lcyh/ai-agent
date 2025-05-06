@@ -270,8 +270,6 @@ onMounted(() => {
 </script>
 
 <style lang="scss">
-@import '../assets/styles/layout.scss';
-@import '../assets/styles/messages.scss';
 
 .message-highlight {
   animation: highlight-pulse 2s ease-in-out;

@@ -37,10 +37,9 @@
       <div class="w-full h-px bg-[#E5E6EB]"></div>
 
       <!-- 对话历史 -->
-      <div v-if="!isCollapsed" class="flex flex-col gap-2 px-3">
+      <div v-if="!isCollapsed" class="flex flex-col gap-4">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-2">
-            <img src="../assets/icons/icon-chat.svg" alt="对话" class="w-4 h-4" />
             <span class="text-[#1D2129]">对话历史</span>
           </div>
           <div class="flex items-center gap-1 cursor-pointer">
@@ -79,9 +78,12 @@
                 v-for="conv in todayConversations" 
                 :key="conv.id" 
                 class="conversation-item" 
+                :class="{ 'conversation-item--active': isActiveConversation(conv.id) }"
                 @click="switchConversation(conv.id)"
               >
-                <div class="conversation-type-indicator" :class="getChatTypeColor(conv.chatType)"></div>
+                <div class="conversation-type-indicator" 
+                     :class="[getChatTypeColor(conv.chatType), 
+                             isActiveConversation(conv.id) ? 'conversation-type-indicator--active' : '']"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -95,9 +97,12 @@
                 v-for="conv in recentConversations" 
                 :key="conv.id" 
                 class="conversation-item" 
+                :class="{ 'conversation-item--active': isActiveConversation(conv.id) }"
                 @click="switchConversation(conv.id)"
               >
-                <div class="conversation-type-indicator" :class="getChatTypeColor(conv.chatType)"></div>
+                <div class="conversation-type-indicator" 
+                     :class="[getChatTypeColor(conv.chatType), 
+                             isActiveConversation(conv.id) ? 'conversation-type-indicator--active' : '']"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -111,9 +116,12 @@
                 v-for="conv in olderConversations" 
                 :key="conv.id" 
                 class="conversation-item" 
+                :class="{ 'conversation-item--active': isActiveConversation(conv.id) }"
                 @click="switchConversation(conv.id)"
               >
-                <div class="conversation-type-indicator" :class="getChatTypeColor(conv.chatType)"></div>
+                <div class="conversation-type-indicator" 
+                     :class="[getChatTypeColor(conv.chatType), 
+                             isActiveConversation(conv.id) ? 'conversation-type-indicator--active' : '']"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -165,6 +173,10 @@ const props = defineProps({
     type: Array as () => ConversationHistory[],
     required: true
   },
+  activeConversationId: {
+    type: String,
+    default: ''
+  },
   activeChatType: {
     type: String as () => ChatType,
     default: 'general'
@@ -181,6 +193,7 @@ const props = defineProps({
 // UI状态变量
 const showMoreOptions = ref(false);
 const showSearchDialog = ref(false);
+const currentActiveId = ref(''); // 内部跟踪的当前选中对话ID
 
 // 定义事件
 const emit = defineEmits([
@@ -203,7 +216,13 @@ const createNewConversation = (type: ChatType = 'general') => {
 
 // 切换到指定对话
 const switchConversation = (id: string) => {
+  currentActiveId.value = id; // 更新内部状态
   emit('switch-conversation', id);
+};
+
+// 判断对话是否处于激活状态
+const isActiveConversation = (id: string): boolean => {
+  return id === props.activeConversationId || id === currentActiveId.value;
 };
 
 // 清空所有对话
@@ -372,7 +391,7 @@ const olderConversations = computed(() => {
 .conversation-item {
   display: flex;
   align-items: center;
-  padding: 6px 12px;
+  padding: 6px 12px 6px 6px;
   border-radius: 8px;
   cursor: pointer;
   margin-bottom: 4px;
@@ -381,15 +400,38 @@ const olderConversations = computed(() => {
 
 .conversation-item:hover {
   background-color: #f0f2f5;
-  transform: translateX(2px);
 }
 
 .conversation-type-indicator {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   margin-right: 8px;
   flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.conversation-type-indicator--active {
+  animation: heartbeat 2.5s ease-in-out infinite;
+  box-shadow: 0 0 0 rgba(22, 93, 255, 0.4);
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(1);
+  }
+  75% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .conversation-title {
@@ -401,13 +443,27 @@ const olderConversations = computed(() => {
 }
 
 .time-group-label {
-  padding: 6px 12px;
+  padding: 6px 12px 6px 0;
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
   color: #4E5969;
-  border: 1px solid rgba(76, 175, 80, 0.4);
   border-radius: 8px;
-  background-color: white;
+}
+
+.conversation-item--active {
+  background-color: rgba(22, 93, 255, 0.1);
+  border-radius: 8px;
+  font-weight: 500;
+  transform: translateX(0) !important;
+  box-shadow: 0 2px 4px rgba(22, 93, 255, 0.1);
+  
+  .conversation-title {
+    color: #165DFF;
+  }
+  
+  &:hover {
+    background-color: rgba(22, 93, 255, 0.15);
+  }
 }
 </style> 
