@@ -25,20 +25,14 @@
       <!-- 折叠时显示的垂直排列布局 -->
       <div v-if="isCollapsed" class="flex flex-col items-center gap-6">
         <!-- Logo -->
-        <div 
-          class="tooltip-wrapper"
-          @mouseenter="showTooltip($event, 'AI Agent')"
-          @mouseleave="hideTooltip"
-        >
-          <img src="../assets/icons/logo.svg" class="w-8 h-8 rounded-full cursor-pointer" alt="Logo" />
-        </div>
+        <a-tooltip placement="right" title="AI Agent">
+          <div class="cursor-pointer">
+            <img src="../assets/icons/logo.svg" class="w-8 h-8 rounded-full" alt="Logo" />
+          </div>
+        </a-tooltip>
         
         <!-- 折叠按钮 -->
-        <div 
-          class="tooltip-wrapper"
-          @mouseenter="showTooltip($event, '展开导航')"
-          @mouseleave="hideTooltip"
-        >
+        <a-tooltip placement="right" title="展开导航">
           <div class="p-1 rounded cursor-pointer hover:bg-gray-100" @click="toggleCollapse">
             <img 
               :src="expandIcon" 
@@ -46,7 +40,7 @@
               class="w-5 h-5 rotate-180" 
             />
           </div>
-        </div>
+        </a-tooltip>
       </div>
 
       <!-- 开启新对话按钮 -->
@@ -58,16 +52,11 @@
       </a-button>
 
       <!-- 折叠时的新对话按钮 -->
-      <div 
-        v-if="isCollapsed" 
-        class="tooltip-wrapper"
-        @mouseenter="showTooltip($event, '开启新对话')"
-        @mouseleave="hideTooltip"
-      >
+      <a-tooltip v-if="isCollapsed" placement="right" title="开启新对话">
         <div class="p-2 rounded-full flex items-center justify-center cursor-pointer new-chat-icon" @click="createNewConversation('general')">
           <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-5 h-5" />
         </div>
-      </div>
+      </a-tooltip>
 
       <div class="w-full h-px bg-[#E5E6EB]"></div>
 
@@ -165,16 +154,11 @@
       </div>
       
       <!-- 对话历史图标（折叠状态） -->
-      <div 
-        v-else 
-        class="tooltip-wrapper"
-        @mouseenter="showTooltip($event, '对话历史')"
-        @mouseleave="hideTooltip"
-      >
+      <a-tooltip v-else placement="right" title="对话历史">
         <div class="flex items-center p-[9px] px-3 rounded hover:bg-white cursor-pointer">
           <img src="../assets/icons/icon-chat.svg" alt="对话历史" class="w-4 h-4" />
         </div>
-      </div>
+      </a-tooltip>
     </div>
 
     <!-- 个人入口 -->
@@ -184,28 +168,16 @@
     </div>
 
     <!-- 折叠状态的个人入口 -->
-    <div 
-      v-else 
-      class="tooltip-wrapper"
-      @mouseenter="showTooltip($event, 'lc')"
-      @mouseleave="hideTooltip"
-    >
+    <a-tooltip v-else placement="right" title="lc">
       <div class="flex items-center rounded hover:bg-white cursor-pointer">
         <img src="../assets/icons/user-avatar.svg" class="w-6 h-6 rounded-full" alt="User" />
       </div>
-    </div>
+    </a-tooltip>
   </aside>
-  
-  <!-- 通过teleport将气泡提示渲染到body -->
-  <teleport to="body">
-    <div v-if="tooltipVisible" class="global-tooltip" :style="tooltipStyle">
-      {{ tooltipText }}
-    </div>
-  </teleport>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, computed, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref } from 'vue';
 import expandIcon from '../assets/icons/expand.svg';
 import type { ChatType } from '../types/chat';
 import { formatTime } from '../services/messageService';
@@ -218,44 +190,6 @@ interface ConversationHistory {
   lastMessage: string;
   chatType: ChatType;
 }
-
-// 气泡提示状态
-const tooltipVisible = ref(false);
-const tooltipText = ref('');
-const tooltipStyle = ref({});
-let tooltipTimer: number | null = null;
-
-// 显示气泡提示
-const showTooltip = (event: MouseEvent, text: string) => {
-  if (tooltipTimer) {
-    window.clearTimeout(tooltipTimer);
-    tooltipTimer = null;
-  }
-  
-  const element = event.currentTarget as HTMLElement;
-  const rect = element.getBoundingClientRect();
-  
-  tooltipText.value = text;
-  tooltipStyle.value = {
-    top: `${rect.top + rect.height / 2}px`,
-    left: `${rect.right + 15}px`,
-  };
-  tooltipVisible.value = true;
-};
-
-// 隐藏气泡提示
-const hideTooltip = () => {
-  tooltipTimer = window.setTimeout(() => {
-    tooltipVisible.value = false;
-  }, 100);
-};
-
-// 在组件卸载前清除所有定时器
-onBeforeUnmount(() => {
-  if (tooltipTimer) {
-    window.clearTimeout(tooltipTimer);
-  }
-});
 
 // 定义组件属性
 const props = defineProps({
@@ -411,46 +345,6 @@ const olderConversations = computed(() => {
   width: 64px;
 }
 
-.tooltip-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.tooltip-wrapper:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
-.tooltip {
-  position: absolute;
-  left: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  margin-left: 12px;
-  z-index: 9999; 
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.tooltip::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
-}
-
 // 新对话按钮样式
 .new-chat-button {
   background-color: #165dff !important;
@@ -603,32 +497,5 @@ const olderConversations = computed(() => {
   img {
     filter: brightness(0) invert(1);
   }
-}
-
-.global-tooltip {
-  position: fixed;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 99999;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-50%);
-  pointer-events: none;
-  left: 70px;
-  margin-left: 15px;
-}
-
-.global-tooltip::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
 }
 </style> 
