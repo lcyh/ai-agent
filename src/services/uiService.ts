@@ -95,10 +95,22 @@ export const hasCodeBlock = (content: string): boolean => {
 };
 
 /**
- * 使用markdown-it格式化包含代码块的消息
+ * 使用markdown-it格式化消息内容
  */
 export const formatMessageWithCodeBlocks = (content: string): string => {
   const markdown = initMarkdown();
+  // 确保markdown实例已启用默认功能
+  markdown.enable([
+    'heading',     // 标题
+    'list',        // 列表
+    'blockquote',  // 引用
+    'table',       // 表格
+    'emphasis',    // 强调（斜体、粗体）
+    'link',        // 链接
+    'strikethrough', // 删除线
+    'code',        // 行内代码
+    'fence'        // 代码块
+  ]);
   return markdown.render(content);
 };
 

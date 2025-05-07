@@ -63,9 +63,8 @@
                 <span class="text-xs text-[#86909C]">{{ formatTime(message.timestamp) }}</span>
               </div>
               <div class="ai-bubble">
-                <!-- 使用v-html渲染格式化后的消息内容，允许代码块渲染 -->
-                <div v-if="!hasCodeBlock(message.content)" class="text-sm whitespace-pre-wrap">{{ message.content }}</div>
-                <div v-else v-html="formatMessageWithCodeBlocks(message.content)" class="message-content"></div>
+                <!-- 使用v-html渲染格式化后的消息内容，所有消息都使用markdown-it处理 -->
+                <div v-html="formatMessageWithCodeBlocks(message.content)" class="message-content text-sm"></div>
                 
                 <!-- 可能的图表或搜索结果 -->
                 <div v-if="message.streaming && message.chart?.title" class="mt-4 border border-[#F2F3F5] rounded-xl p-4">
