@@ -67,7 +67,7 @@
             <span class="text-[#1D2129]">对话历史</span>
           </div>
           <div class="flex items-center gap-1 cursor-pointer">
-            <div class="p-1 rounded hover:bg-gray-100" @click="showSearchDialog = true">
+            <div class="p-1 rounded hover:bg-gray-100" @click="openSearchModal">
               <img src="../assets/icons/icon-search.svg" alt="搜索" class="w-3.5 h-3.5" />
             </div>
             <div class="p-1 rounded hover:bg-gray-100" @click="showMoreOptions = !showMoreOptions">
@@ -171,6 +171,15 @@
       </div>
     </a-tooltip>
   </aside>
+
+  <!-- 搜索历史会话弹窗 -->
+  <SearchHistoryModal 
+    :visible="showSearchModal"
+    :recent-conversations="recentConversations"
+    :active-conversation-id="activeConversationId"
+    @close="closeSearchModal"
+    @select-conversation="handleSelectConversation"
+  />
 </template>
 
 <script setup lang="ts">
@@ -178,6 +187,7 @@ import { computed, ref } from 'vue';
 import expandIcon from '../assets/icons/expand.svg';
 import type { ChatType } from '../types/chat';
 import { formatTime } from '../services/messageService';
+import SearchHistoryModal from './SearchHistoryModal.vue';
 
 // 对话历史记录类型定义
 interface ConversationHistory {
@@ -223,6 +233,7 @@ const props = defineProps({
 const showMoreOptions = ref(false);
 const showSearchDialog = ref(false);
 const currentActiveId = ref(''); // 内部跟踪的当前选中对话ID
+const showSearchModal = ref(false);
 
 // 定义事件
 const emit = defineEmits([
@@ -262,6 +273,21 @@ const clearAllConversations = () => {
   if (confirm('确定要清空所有对话历史吗？此操作不可撤销。')) {
     emit('clear-all-conversations');
   }
+};
+
+// 打开搜索历史会话弹窗
+const openSearchModal = () => {
+  showSearchModal.value = true;
+};
+
+// 关闭搜索历史会话弹窗
+const closeSearchModal = () => {
+  showSearchModal.value = false;
+};
+
+// 处理选择历史会话
+const handleSelectConversation = (id: string) => {
+  switchConversation(id);
 };
 
 // 按当前活跃的聊天类型过滤对话
