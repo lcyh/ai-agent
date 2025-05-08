@@ -106,8 +106,7 @@
                 @click="switchConversation(conv.id)"
               >
                 <div class="conversation-type-indicator" 
-                     :class="[getChatTypeColor(conv.chatType), 
-                             isActiveConversation(conv.id) ? 'conversation-type-indicator--active' : '']"></div>
+                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor(conv.chatType)"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -125,8 +124,7 @@
                 @click="switchConversation(conv.id)"
               >
                 <div class="conversation-type-indicator" 
-                     :class="[getChatTypeColor(conv.chatType), 
-                             isActiveConversation(conv.id) ? 'conversation-type-indicator--active' : '']"></div>
+                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor(conv.chatType)"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -144,8 +142,7 @@
                 @click="switchConversation(conv.id)"
               >
                 <div class="conversation-type-indicator" 
-                     :class="[getChatTypeColor(conv.chatType), 
-                             isActiveConversation(conv.id) ? 'conversation-type-indicator--active' : '']"></div>
+                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor(conv.chatType)"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -287,7 +284,7 @@ const getChatTypeColor = (chatType: ChatType): string => {
     case 'agent':
       return 'bg-[#4CAF50]';
     default:
-      return 'bg-[#808080]';
+      return 'bg-[#CCCCCC]'; // 淡灰色
   }
 };
 
