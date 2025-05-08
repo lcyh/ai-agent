@@ -11,9 +11,9 @@ import { debounce, throttle } from 'lodash-es';
  */
 export const scrollToBottom = (): void => {
   setTimeout(() => {
-    const container = document.querySelector('.overflow-auto');
+    const container = document.querySelector('.chat-container');
     if (container) {
-      const safetyMargin = 150;
+      const safetyMargin = 200; // 增加安全边距，确保内容完全可见
 
       // 平滑滚动提供更好的用户体验
       container.scrollTo({
@@ -21,13 +21,13 @@ export const scrollToBottom = (): void => {
         behavior: 'smooth'
       });
 
-      // 确保内容完全滚动到位
+      // 确保内容完全滚动到位，对于可能的动态内容加载
       setTimeout(() => {
         container.scrollTo({
           top: container.scrollHeight + safetyMargin,
           behavior: 'auto'
         });
-      }, 150);
+      }, 200); // 增加等待时间
     }
   }, 10);
 };

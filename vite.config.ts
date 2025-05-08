@@ -25,7 +25,7 @@ export default defineConfig({
   },
   server: {
     host: true, // 监听所有地址，包括局域网和公网地址
-    port: 3000, // 指定端口号
+    port: 5000, // 指定端口号
     open: true, // 自动打开浏览器
     cors: true, // 允许跨域
     strictPort: false, // 端口被占用时，自动尝试下一个可用端口

@@ -148,8 +148,12 @@ const sendMessage = async (content: string) => {
     isLoading.value = false;
     abortController.value = null;
     
-    // 对话结束后保存对话历史
+    // 对话结束后保存对话历史并滚动到底部
     saveCurrentConversation();
+    // 确保AI响应完成后也滚动到底部
+    nextTick(() => {
+      scrollToBottom();
+    });
   }
 };
 

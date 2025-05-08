@@ -1,5 +1,16 @@
 <template>
   <main class="content-area" :class="isMobile ? 'mx-1 my-1' : 'mx-4 my-3'">
+    <!-- 回到底部按钮 -->
+    <div v-if="showScrollToBottom" class="scroll-to-bottom-btn cursor-pointer" @click="scrollToBottomHandler">
+      <div class="scroll-bottom-icon-container">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#165DFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" class="scroll-circle" fill="#EFF3FF" />
+          <path d="M12 8v8" />
+          <path d="M8 13l4 3 4-3" />
+        </svg>
+      </div>
+    </div>
+    
     <!-- 页头 -->
     <div class="page-header">
       <div class="flex items-center gap-6">
@@ -23,7 +34,7 @@
     </div>
 
     <!-- 对话区域 -->
-    <div class="chat-container">
+    <div class="chat-container" ref="chatContainerRef" @scroll="handleChatScroll">
       <!-- 对话类型提示 -->
       <div v-if="showChatTypeHint" class="max-w-4xl mx-auto mb-8 p-4 bg-[#F8FAFD] rounded-lg border border-[#E5E6EB]">
         <div class="flex items-start gap-3">
@@ -142,6 +153,8 @@
             </div>
           </div>
         </div>
+        <!-- 底部空白占位，确保最后的消息不被输入框遮挡 -->
+        <div class="h-10"></div>
       </div>
     </div>
 
@@ -188,7 +201,7 @@
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits, nextTick } from 'vue';
 import { formatTime } from '../services/messageService';
-import { hasCodeBlock, formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
+import {  formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
 import type { Message, ChatType } from '../types/chat';
 import type { ModelType } from '../types/api';
 import type { ModelOption } from '../types/component';
@@ -332,6 +345,12 @@ const handleSendMessage = (suggestion: string) => {
   if (suggestion) {
     emit('send-message', suggestion);
     inputText.value = '';
+    
+    // 确保滚动到底部
+    showScrollToBottom.value = false;
+    nextTick(() => {
+      scrollToBottomHandler();
+    });
   }
 };
 
@@ -393,6 +412,27 @@ const scrollToMessage = (messageIndex: number) => {
     }
   });
 };
+
+// 添加新的滚动处理逻辑
+const chatContainerRef = ref<HTMLElement | null>(null);
+const showScrollToBottom = ref(false);
+
+const handleChatScroll = () => {
+  if (chatContainerRef.value) {
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.value;
+    // 当距离底部超过100px或用户已滚动超过一屏内容时显示按钮
+    showScrollToBottom.value = scrollTop > 200 || (scrollTop + clientHeight < scrollHeight - 100);
+  }
+};
+
+const scrollToBottomHandler = () => {
+  if (chatContainerRef.value) {
+    chatContainerRef.value.scrollTo({
+      top: chatContainerRef.value.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -414,6 +454,82 @@ const scrollToMessage = (messageIndex: number) => {
   flex: 1;
 }
 
+.chat-container {
+  position: relative;
+  height: calc(100vh - 180px);
+  overflow-y: auto;
+  padding: 1rem;
+  padding-bottom: 100px; /* 增加底部padding，确保最后的消息不被输入框遮挡 */
+  scrollbar-width: thin;
+  scrollbar-color: #e5e6eb transparent;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #e5e6eb;
+    border-radius: 2px;
+  }
+  
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: #c9cdd4;
+  }
+}
+
+.scroll-to-bottom-btn {
+  position: fixed;
+  bottom: 150px; /* 位于输入框上方 */
+  right: 20px;
+  z-index: 15; /* 确保高于其他元素 */
+  
+  .scroll-bottom-icon-container {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 12px rgba(22, 93, 255, 0.2);
+    border: 1px solid rgba(22, 93, 255, 0.1);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(22, 93, 255, 0.3);
+      
+      .scroll-circle {
+        fill: rgba(22, 93, 255, 0.15);
+      }
+    }
+    
+    &:active {
+      transform: translateY(1px);
+    }
+    
+    svg {
+      animation: pulse 2s infinite ease-in-out;
+    }
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 .copy-toast.show {
   opacity: 1;
   transform: translate(-50%, 0);
@@ -433,5 +549,14 @@ const scrollToMessage = (messageIndex: number) => {
   100% {
     box-shadow: 0 0 0 0 rgba(22, 93, 255, 0);
   }
+}
+
+.content-area {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 120px; /* 为固定定位的输入框预留空间 */
 }
 </style> 
