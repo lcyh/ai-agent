@@ -175,8 +175,8 @@
   <!-- 搜索历史会话弹窗 -->
   <SearchHistoryModal 
     :visible="showSearchModal"
-    :recent-conversations="recentConversations"
-    :active-conversation-id="activeConversationId"
+    :recent-conversations="filteredConversations"
+    :active-conversation-id="props.activeConversationId"
     @close="closeSearchModal"
     @select-conversation="handleSelectConversation"
   />
@@ -186,7 +186,6 @@
 import { computed, ref } from 'vue';
 import expandIcon from '../assets/icons/expand.svg';
 import type { ChatType } from '../types/chat';
-import { formatTime } from '../services/messageService';
 import SearchHistoryModal from './SearchHistoryModal.vue';
 
 // 对话历史记录类型定义
@@ -231,7 +230,6 @@ const props = defineProps({
 
 // UI状态变量
 const showMoreOptions = ref(false);
-const showSearchDialog = ref(false);
 const currentActiveId = ref(''); // 内部跟踪的当前选中对话ID
 const showSearchModal = ref(false);
 

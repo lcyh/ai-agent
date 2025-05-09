@@ -10,7 +10,6 @@
             type="text" 
             class="search-input" 
             placeholder="搜索聊天..." 
-            @input="handleSearch"
             @keydown.esc="handleClose"
             autofocus
           />
@@ -31,6 +30,9 @@
           暂无历史会话
         </div>
         <div v-else class="search-result-list">
+          <div class="text-center text-[#86909C] text-xs py-2">
+            {{ `可用历史记录: ${recentConversations.length}条` }}
+          </div>
           <div 
             v-for="conv in filteredConversations.length ? filteredConversations : recentConversations" 
             :key="conv.id" 
@@ -50,10 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineEmits, onMounted, watch, nextTick } from 'vue';
+import { ref, computed, defineProps, defineEmits, watch, nextTick, onMounted } from 'vue';
 import type { ChatType } from '../types/chat';
 
-// 定义会话历史接口
+// 精简会话历史接口
 interface ConversationHistory {
   id: string;
   title: string;
@@ -62,7 +64,6 @@ interface ConversationHistory {
   chatType: ChatType;
 }
 
-// 组件属性
 const props = defineProps({
   visible: {
     type: Boolean,
@@ -78,56 +79,47 @@ const props = defineProps({
   }
 });
 
-// 发射事件
 const emit = defineEmits(['close', 'select-conversation']);
-
-// 组件状态
 const searchQuery = ref('');
 const searchInput = ref<HTMLInputElement | null>(null);
 
-// 计算搜索结果
+// 计算搜索结果 - 简化搜索逻辑
 const filteredConversations = computed(() => {
   if (!searchQuery.value) return [];
   
-  const query = searchQuery.value.toLowerCase();
+  const query = searchQuery.value.toLowerCase().trim();
   return props.recentConversations.filter(conv => {
     const title = (conv.title || formatConversationTitle(conv)).toLowerCase();
-    const lastMessage = conv.lastMessage?.toLowerCase() || '';
+    const lastMessage = (conv.lastMessage || '').toLowerCase();
     return title.includes(query) || lastMessage.includes(query);
   });
 });
 
 // 判断会话是否激活
-const isActiveConversation = (id: string): boolean => {
-  return id === props.activeConversationId;
-};
+const isActiveConversation = (id: string) => id === props.activeConversationId;
 
 // 生成会话标题
-const formatConversationTitle = (conv: ConversationHistory): string => {
+const formatConversationTitle = (conv: ConversationHistory) => {
   if (conv.title) return conv.title;
-  if (conv.chatType === 'agent') return 'AI Agent对话';
-  return '无标题对话';
+  return conv.chatType === 'agent' ? 'AI Agent对话' : '无标题对话';
 };
 
-// 格式化日期
-const formatDate = (timestamp: number): string => {
+// 格式化日期 - 精简版本
+const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
   
+  const formatTime = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  
   if (date.toDateString() === today.toDateString()) {
-    return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return `今天 ${formatTime}`;
   } else if (date.toDateString() === yesterday.toDateString()) {
-    return `昨天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return `昨天 ${formatTime}`;
   } else {
-    return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return `${date.getMonth() + 1}月${date.getDate()}日 ${formatTime}`;
   }
-};
-
-// 处理搜索输入
-const handleSearch = () => {
-  // 实时搜索，不需要额外处理
 };
 
 // 处理选择会话
@@ -145,11 +137,14 @@ const handleClose = () => {
 // 当弹窗显示时自动聚焦输入框
 watch(() => props.visible, (newVal) => {
   if (newVal) {
-    nextTick(() => {
-      searchInput.value?.focus();
-    });
+    nextTick(() => searchInput.value?.focus());
   }
 });
+
+// 监听父组件传入的数据变化
+watch(() => props.recentConversations, (newVal) => {
+  console.log('SearchHistoryModal recentConversations changed:', newVal.length);
+}, { immediate: true });
 </script>
 
 <style lang="scss" scoped>
@@ -165,24 +160,22 @@ watch(() => props.visible, (newVal) => {
   align-items: flex-start;
   padding-top: 60px;
   z-index: 1000;
-  animation: fadeIn 0.2s ease;
 }
 
 .search-history-modal {
   width: 500px;
   max-width: 90vw;
   background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  animation: slideDown 0.3s ease;
 }
 
 .search-history-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 14px 16px;
   border-bottom: 1px solid #E5E6EB;
 }
 
@@ -201,17 +194,17 @@ watch(() => props.visible, (newVal) => {
 }
 
 .search-result-list {
-  padding: 8px;
+  padding: 4px;
 }
 
 .search-result-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  gap: 10px;
+  padding: 10px 12px;
   cursor: pointer;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  border-radius: 4px;
+  transition: all 0.2s;
   
   &:hover {
     background-color: #F7F8FA;
@@ -228,28 +221,12 @@ watch(() => props.visible, (newVal) => {
 .search-result-title {
   font-size: 14px;
   color: #1D2129;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .search-result-time {
   font-size: 12px;
   color: #86909C;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 // 自定义滚动条样式
@@ -268,10 +245,6 @@ watch(() => props.visible, (newVal) => {
   &::-webkit-scrollbar-thumb {
     background-color: #e5e6eb;
     border-radius: 2px;
-  }
-  
-  &:hover::-webkit-scrollbar-thumb {
-    background-color: #c9cdd4;
   }
 }
 </style> 

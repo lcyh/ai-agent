@@ -36,9 +36,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import type { ModelType } from '../types/api';
-import type { ChatType } from '../types/chat';
 import { modelConfig } from '../api/ai';
 import { 
   REQUEST_TIMEOUT,
@@ -47,11 +46,9 @@ import {
   withTimeout,
   handleResponseError,
   processModelResponse,
-  simulateSearchResponse
 } from '../services/messageService';
-import { scrollToBottom, debouncedScroll, throttledResize, setupCodeBlockEventListeners } from '../services/uiService';
+import { scrollToBottom, throttledResize, setupCodeBlockEventListeners } from '../services/uiService';
 import { useConversationManager } from '../services/conversationService';
-import { normalizeChatType } from '../utils/chatUtils';
 import SideNavigation from '../components/SideNavigation.vue';
 import ChatArea from '../components/ChatArea.vue';
 
