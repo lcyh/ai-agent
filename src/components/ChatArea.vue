@@ -11,28 +11,6 @@
       </div>
     </div>
     
-    <!-- 页头 -->
-    <div class="page-header">
-      <div class="flex items-center gap-6">
-        <div v-if="isMobile" class="cursor-pointer p-1" @click="toggleCollapse">
-          <img :src="iconMenu" class="w-5 h-5" alt="菜单" />
-        </div>
-        <div class="px-2 py-1">
-          <span class="text-base font-medium" :class="{'text-sm': isMobile}">
-            {{ chatTypeTitle }}
-          </span>
-        </div>
-        <div class="flex-1 search-container-wrapper">
-          <SearchBar
-            :conversations="recentConversations"
-            :currentConversation="conversation"
-            :placeholder="'搜索对话内容...'"
-            @select-result="handleSearchResultSelect"
-          />
-        </div>
-      </div>
-    </div>
-
     <!-- 对话区域 -->
     <div class="chat-container" ref="chatContainerRef" @scroll="handleChatScroll">
       <!-- 对话类型提示 -->
@@ -165,7 +143,7 @@
           <!-- 模型选择区域 -->
           <div class="flex flex-wrap items-center gap-2 mb-3">
             <div 
-              v-for="model in filteredModels" 
+              v-for="model in models" 
               :key="model.id"
               class="flex items-center gap-1 px-2 py-1 rounded cursor-pointer" 
               :class="selectedModel === model.id ? 'bg-[#EFF3FF] border border-[#94BFFF]' : 'bg-[#F7F8FA]'"
@@ -201,13 +179,11 @@
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits, nextTick } from 'vue';
 import { formatTime } from '../services/messageService';
-import {  formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
-import type { Message, ChatType } from '../types/chat';
+import { formatMessageWithCodeBlocks, copyToClipboard } from '../services/uiService';
+import type { Message } from '../types/chat';
 import type { ModelType } from '../types/api';
 import type { ModelOption } from '../types/component';
 import type { ConversationHistory } from '../types/conversationHistory';
-import type { SearchResultItem } from '../services/searchService';
-import SearchBar from './SearchBar.vue';
 
 // 导入图标
 import iconDeepseek from '../assets/icons/icon-deepseek.svg';
@@ -221,10 +197,7 @@ import iconMore from '../assets/icons/icon-more.svg';
 import iconThumbUp from '../assets/icons/icon-thumb-up.svg';
 import iconThumbDown from '../assets/icons/icon-thumb-down.svg';
 import iconChart from '../assets/icons/icon-chart.svg';
-import iconMenu from '../assets/icons/icon-more.svg';
-import iconSearch from '../assets/icons/icon-search.svg';
 import iconCode from '../assets/icons/icon-code.svg';
-import iconImage from '../assets/icons/icon-image.svg';
 import logoAI from '../assets/icons/logo.svg';
 import avatarUser from '../assets/icons/user-avatar.svg';
 import iconCheck from '../assets/icons/icon-check.svg';
@@ -247,10 +220,6 @@ const props = defineProps({
     type: Boolean,
     required: true
   },
-  activeChatType: {
-    type: String as () => ChatType,
-    default: 'general'
-  },
   recentConversations: {
     type: Array as () => ConversationHistory[],
     default: () => []
@@ -258,61 +227,28 @@ const props = defineProps({
 });
 
 // 定义事件
-const emit = defineEmits(['toggle-collapse', 'send-message', 'select-model', 'cancel-request', 'jump-to-message']);
+const emit = defineEmits(['send-message', 'select-model', 'cancel-request']);
 
 // 本地输入框值
 const inputText = ref('');
 
-// 可用模型列表
-const allModels: ModelOption[] = [
+// 可用模型列表 - 所有模型都可选
+const models: ModelOption[] = [
   { id: 'deepseek', name: 'DeepSeek-R1', icon: iconDeepseek },
   { id: 'silicon', name: '硅基流动', icon: iconDeepseek }, 
   { id: 'web', name: '联网搜索', icon: iconGlobal }
 ];
 
-// 根据对话类型筛选可用模型
-const filteredModels = computed(() => {
-  switch (props.activeChatType) {
-    case 'agent':
-      return allModels.filter(model => model.id === 'deepseek');
-    case 'general':
-    default:
-      return allModels;
-  }
-});
-
-// 根据对话类型显示标题
-const chatTypeTitle = computed(() => {
-  return {
-    general: '通用对话',
-    agent: 'AI Agent对话'
-  }[props.activeChatType] || '对话';
-});
-
-// 获取对话类型信息
+// 聊天类型信息
 const chatTypeInfo = computed(() => {
-  const types = {
-    general: {
-      name: '通用助手',
-      icon: logoAI,
-      bgColor: 'bg-[#EFF3FF]',
-      description: '可以解答各种问题',
-      placeholder: '输入你的问题...',
-      aiName: '通用助手',
-      models: filteredModels.value
-    },
-    agent: {
-      name: 'AI Agent助手',
-      icon: iconCode,
-      bgColor: 'bg-[#FFF3E8]',
-      description: '搜索、编程、写作、创作',
-      placeholder: '有什么可以帮你的?',
-      aiName: 'AI Agent助手',
-      models: [allModels[0]]
-    }
+  return {
+    name: 'AI Agent助手',
+    icon: logoAI,
+    bgColor: 'bg-[#FFF3E8]',
+    description: '搜索、编程、写作、创作',
+    placeholder: '有什么可以帮你的?',
+    aiName: 'AI Agent助手'
   };
-  
-  return types[props.activeChatType] || types.general;
 });
 
 // 是否显示对话类型提示
@@ -320,11 +256,6 @@ const showChatTypeHint = computed(() => {
   // 如果对话中只有一条消息（欢迎消息），则显示提示
   return props.conversation.length <= 1;
 });
-
-// 切换折叠状态
-const toggleCollapse = () => {
-  emit('toggle-collapse');
-};
 
 // 处理Enter键按下
 const onEnterPress = () => {
@@ -381,39 +312,7 @@ const copyText = (text: string) => {
   });
 };
 
-// 处理搜索结果选择
-const handleSearchResultSelect = (result: SearchResultItem) => {
-  // 如果是当前对话，滚动到相应消息
-  if (result.conversationId === 'current') {
-    scrollToMessage(result.messageIndex);
-  } else {
-    // 如果是其他对话，跳转到该对话并定位到特定消息
-    emit('jump-to-message', {
-      conversationId: result.conversationId,
-      messageIndex: result.messageIndex
-    });
-  }
-};
-
-// 滚动到指定消息
-const scrollToMessage = (messageIndex: number) => {
-  nextTick(() => {
-    // 获取所有消息元素
-    const messageElements = document.querySelectorAll('.user-bubble, .ai-bubble');
-    if (messageElements && messageElements[messageIndex]) {
-      // 滚动到指定元素并高亮显示
-      messageElements[messageIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      messageElements[messageIndex].classList.add('highlight-message');
-      
-      // 移除高亮
-      setTimeout(() => {
-        messageElements[messageIndex].classList.remove('highlight-message');
-      }, 2000);
-    }
-  });
-};
-
-// 添加新的滚动处理逻辑
+// 滚动处理逻辑
 const chatContainerRef = ref<HTMLElement | null>(null);
 const showScrollToBottom = ref(false);
 
@@ -436,24 +335,6 @@ const scrollToBottomHandler = () => {
 </script>
 
 <style lang="scss" scoped>
-.page-header {
-  background-color: white;
-  padding: 10px 12px;
-  border-bottom: 1px solid #f2f3f5;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.search-container-wrapper {
-  transition: all 0.3s;
-  min-width: 180px;
-}
-
-.search-container-wrapper:hover {
-  flex: 1;
-}
-
 .chat-container {
   position: relative;
   height: calc(100vh - 180px);
