@@ -9,27 +9,15 @@ import type { ModelType } from '../types/api';
 import { formatTime, DEFAULT_WELCOME_MESSAGE } from './messageService';
 import { normalizeChatType } from '../utils/chatUtils';
 
-// 根据对话类型提供不同的欢迎消息
-const getDefaultWelcomeMessage = (chatType: ChatType): Message => {
-  switch (chatType) {
-    case 'agent':
-      return {
-        role: 'assistant',
-        content: '你好！我是AI Agent，可以帮你解决各种问题，包括信息搜索和编程问题，请问有什么我可以帮助你的?',
-        timestamp: Date.now(),
-        chatType: 'agent',
-        suggestions: ['解决编程问题', '搜索最新资讯', '帮我优化代码']
-      };
-    case 'general':
-    default:
-      return {
-        role: 'assistant',
-        content: '你好！我是AI助手，有什么我可以帮你的？',
-        timestamp: Date.now(),
-        chatType: 'general',
-        suggestions: ['介绍一下你自己', '今天天气如何?', '写一篇文章', '请帮我写一下代码']
-      };
-  }
+// 提供默认欢迎消息
+const getDefaultWelcomeMessage = (): Message => {
+  return {
+    role: 'assistant',
+    content: '你好！我是AI Agent，可以帮你解决各种问题，包括信息搜索和编程问题，请问有什么我可以帮助你的?',
+    timestamp: Date.now(),
+    chatType: 'agent',
+    suggestions: ['解决编程问题', '搜索最新资讯', '帮我优化代码']
+  };
 };
 
 /**
@@ -40,9 +28,9 @@ export function useConversationManager() {
   const activeConversationId = ref<string>('default');
   const historyConversations = ref<ConversationHistory[]>([]);
   const conversation = reactive<Message[]>([
-    { ...DEFAULT_WELCOME_MESSAGE, timestamp: Date.now() - 60000, chatType: 'general' }
+    { ...DEFAULT_WELCOME_MESSAGE, timestamp: Date.now() - 60000, chatType: 'agent' }
   ]);
-  const activeChatType = ref<ChatType>('general');
+  const activeChatType = ref<ChatType>('agent');
 
   // 按时间从近到远排序的最近对话
   const recentConversations = computed(() => {
@@ -52,22 +40,15 @@ export function useConversationManager() {
   // 按对话类型筛选的对话列表
   const conversationsByType = computed(() => {
     const result: Record<ChatType, ConversationHistory[]> = {
-      general: [],
       agent: []
     };
 
-    // 确保使用有效的聊天类型
     historyConversations.value.forEach(conv => {
-      // 确保使用有效的聊天类型
-      const chatType = normalizeChatType(conv.chatType);
-
-      result[chatType].push({ ...conv, chatType });
+      result.agent.push({ ...conv, chatType: 'agent' });
     });
 
     // 对每种类型的对话按时间从近到远排序
-    Object.keys(result).forEach(type => {
-      result[type as ChatType].sort((a, b) => b.timestamp - a.timestamp);
-    });
+    result.agent.sort((a, b) => b.timestamp - a.timestamp);
 
     return result;
   });
@@ -80,7 +61,7 @@ export function useConversationManager() {
   /**
    * 创建新对话
    */
-  const newConversation = (type: ChatType = 'general') => {
+  const newConversation = () => {
     // 如果当前对话有内容，保存到历史记录
     if (conversation.length > 1) {
       saveCurrentConversation();
@@ -89,26 +70,17 @@ export function useConversationManager() {
     // 创建新的对话ID
     activeConversationId.value = generateId();
 
-    // 更新当前活跃对话类型
-    activeChatType.value = type;
-
-    // 获取对应类型的欢迎消息
-    const welcomeMessage = getDefaultWelcomeMessage(type);
+    // 获取欢迎消息
+    const welcomeMessage = getDefaultWelcomeMessage();
 
     // 创建新的对话对象并添加到历史记录
-    const typeName = {
-      general: '新对话',
-      agent: 'AI Agent对话',
-      image: '图像对话'
-    }[type];
-
     const newConv: ConversationHistory = {
       id: activeConversationId.value,
-      title: `${typeName} ${formatTime(Date.now())}`,
+      title: `AI Agent对话 ${formatTime(Date.now())}`,
       timestamp: Date.now(),
       lastMessage: '',
       messages: [welcomeMessage],
-      chatType: type
+      chatType: 'agent'
     };
 
     historyConversations.value.unshift(newConv);
@@ -151,7 +123,7 @@ export function useConversationManager() {
         timestamp: Date.now(),
         lastMessage,
         messages: [...conversation],
-        chatType: activeChatType.value
+        chatType: 'agent'
       });
     }
   };
@@ -171,32 +143,12 @@ export function useConversationManager() {
     // 加载选中的对话
     const selectedConv = historyConversations.value.find(conv => conv.id === id);
     if (selectedConv) {
-      // 确保使用有效的聊天类型
-      const chatType = normalizeChatType(selectedConv.chatType);
-
-      // 更新当前活跃对话类型
-      activeChatType.value = chatType;
-
       // 更新对话内容
       conversation.splice(0, conversation.length);
       selectedConv.messages.forEach(msg => {
-        // 确保消息的chatType有效
-        const msgChatType = normalizeChatType(msg.chatType, chatType);
-
-        conversation.push({ ...msg, chatType: msgChatType });
+        conversation.push({ ...msg, chatType: 'agent' });
       });
     }
-  };
-
-  /**
-   * 切换对话类型并创建新对话
-   */
-  const switchChatType = (type: ChatType) => {
-    // 如果已经是当前类型，不做任何操作
-    if (type === activeChatType.value) return;
-
-    // 创建指定类型的新对话
-    newConversation(type);
   };
 
   /**
@@ -268,22 +220,21 @@ export function useConversationManager() {
         timestamp: Date.now(),
         lastMessage: DEFAULT_WELCOME_MESSAGE.content,
         messages: [...conversation],
-        chatType: 'general'
+        chatType: 'agent'
       });
     }
   };
 
   return {
-    activeConversationId,
     conversation,
     historyConversations,
+    activeConversationId,
+    activeChatType,
     recentConversations,
     conversationsByType,
-    activeChatType,
     newConversation,
     saveCurrentConversation,
     switchToConversation,
-    switchChatType,
     finalizeAIMessage,
     updateMessageUI,
     initializeConversation
@@ -293,11 +244,6 @@ export function useConversationManager() {
 /**
  * 获取对话类型的显示名称
  */
-export const getConversationTypeLabel = (type: ChatType): string => {
-  const labels: Record<ChatType, string> = {
-    general: '通用对话',
-    agent: 'Agent对话'
-  };
-
-  return labels[type] || '未知对话';
+export const getConversationTypeLabel = (): string => {
+  return 'Agent对话';
 }; 

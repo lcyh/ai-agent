@@ -2,7 +2,7 @@
  * @Author: changluo
  * @Description: 消息处理服务
  */
-import type { Message } from '../types/chat';
+import type { ChatType, Message } from '../types/chat';
 import type { ModelType } from '../types/api';
 import { deepseekApi, siliconFlowApi } from '../api/ai';
 import dayjs from 'dayjs';
@@ -13,7 +13,7 @@ export const DEFAULT_WELCOME_MESSAGE: Message = {
   role: 'assistant',
   content: '你好！我是AI Agent，有什么我可以帮助你的吗？',
   timestamp: Date.now(),
-  chatType: 'general',
+  chatType: 'agent',
   suggestions: ['介绍一下你自己', '今天天气如何？', '帮我写一篇文章']
 };
 
@@ -23,24 +23,27 @@ export const REQUEST_TIMEOUT = 30000; // 30秒
 /**
  * 创建用户消息
  */
-export const createUserMessage = (content: string, chatType: 'general' | 'agent' | 'image' = 'general'): Message => ({
-  role: 'user',
-  content,
-  timestamp: Date.now(),
-  chatType
-});
+export function createUserMessage(content: string): Message {
+  return {
+    role: 'user',
+    content,
+    timestamp: Date.now(),
+    chatType: 'agent'
+  };
+}
 
 /**
- * 创建AI消息（加载状态）
+ * 创建AI加载消息
  */
-export const createLoadingAIMessage = (chatType: 'general' | 'agent' | 'image' = 'general'): Message => ({
-  role: 'assistant',
-  content: '',
-  timestamp: Date.now(),
-  loading: true,
-  streaming: true,
-  chatType
-});
+export function createLoadingAIMessage(): Message {
+  return {
+    role: 'assistant',
+    content: '',
+    loading: true,
+    timestamp: Date.now(),
+    chatType: 'agent'
+  };
+}
 
 /**
  * 处理大语言模型响应

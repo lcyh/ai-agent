@@ -4,13 +4,12 @@
  * @LastEditors: luc19964 luochang@gopherasset.com
 -->
 <template>
-  <div class="main-layout" :class="{'text-sm': isMobile, [`chat-type-${activeChatType}`]: true}">
+  <div class="main-layout" :class="{'text-sm': isMobile}">
     <!-- 左侧导航栏组件 -->
     <SideNavigation 
       :isCollapsed="isCollapsed"
       :isMobile="isMobile"
       :recentConversations="recentConversations"
-      :activeChatType="activeChatType"
       :conversationsByType="conversationsByType"
       @toggle-collapse="isCollapsed = !isCollapsed"
       @new-conversation="newConversation"
@@ -24,7 +23,6 @@
       :isMobile="isMobile"
       :selectedModel="selectedModel"
       :isLoading="isLoading"
-      :activeChatType="activeChatType"
       :recentConversations="recentConversations"
       @toggle-collapse="isCollapsed = !isCollapsed"
       @send-message="sendMessage"
@@ -59,7 +57,6 @@ const {
   historyConversations,
   recentConversations,
   conversationsByType,
-  activeChatType,
   newConversation,
   saveCurrentConversation,
   switchToConversation,
@@ -96,7 +93,7 @@ const clearAllConversations = () => {
   historyConversations.value = [];
   
   // 重新初始化对话
-  newConversation('general');
+  newConversation();
   
   // 如果需要，可以恢复当前会话
   if (currentConversation.length > 0) {
@@ -111,11 +108,11 @@ const sendMessage = async (content: string) => {
   if (isLoading.value || !content.trim()) return;
   
   // 创建用户消息
-  const userMessage = createUserMessage(content, activeChatType.value);
+  const userMessage = createUserMessage(content, 'agent');
   conversation.push(userMessage);
   
   // 创建AI响应消息（加载状态）
-  const aiMessage = createLoadingAIMessage(activeChatType.value);
+  const aiMessage = createLoadingAIMessage('agent');
   const aiMessageIndex = conversation.length;
   conversation.push(aiMessage);
   
@@ -131,14 +128,8 @@ const sendMessage = async (content: string) => {
     // 创建AbortController用于取消请求
     abortController.value = new AbortController();
     
-    // 根据对话类型选择不同的处理方式
-    if (activeChatType.value === 'general') {
-      // 普通对话模式
-      await simulateAPIResponse(aiMessageIndex, content);
-    } else {
-      // 其他对话模式
-      await simulateAPIResponse(aiMessageIndex, content);
-    }
+    // 处理API响应
+    await simulateAPIResponse(aiMessageIndex, content);
   } catch (error: any) {
     handleResponseError(error, aiMessageIndex, conversation, abortController.value);
   } finally {
@@ -198,93 +189,212 @@ const simulateAPIResponse = async (aiMessageIndex: number, messageContent: strin
         abortController.value?.signal as AbortSignal
       );
     } catch (error: any) {
-      if (error.name !== 'AbortError') {
-        console.error('Error in API response:', error);
+      if (error.name === 'TimeoutError') {
+        throw error;
       }
-      throw error;
+      
+      // 处理模型生成失败
+      console.error('Model response error:', error);
+      throw new Error(error.message || '获取响应失败，请重试');
     }
   };
   
-  // 添加超时处理
+  // 使用超时包装
   await withTimeout(generateResponse(), REQUEST_TIMEOUT);
 };
 
 /**
- * 跳转到指定对话中的消息
+ * 模型选择
  */
-const jumpToMessage = (conversationId: string, messageIndex: number) => {
-  // 如果是不同的对话，先切换到对应对话
-  if (conversationId !== activeConversationId.value) {
-    switchToConversation(conversationId);
-  }
-  
-  // 然后滚动到目标消息位置
-  nextTick(() => {
-    const messageElements = document.querySelectorAll('.message-container');
-    if (messageElements.length > messageIndex) {
-      messageElements[messageIndex].scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-      
-      // 添加高亮效果
-      messageElements[messageIndex].classList.add('message-highlight');
-      setTimeout(() => {
-        messageElements[messageIndex].classList.remove('message-highlight');
-      }, 2000);
-    }
-  });
+const selectModel = (modelType: ModelType) => {
+  selectedModel.value = modelType;
 };
 
 /**
- * 取消正在处理的请求
+ * 跳转到指定消息
+ */
+const jumpToMessage = (index: number) => {
+  console.log('跳转到消息:', index);
+  // 在实际应用中，这里通常会滚动到指定消息
+};
+
+/**
+ * 取消请求
  */
 const cancelRequest = () => {
   if (abortController.value) {
     abortController.value.abort();
     abortController.value = null;
   }
+  // 找到加载中的消息并清除加载状态
+  const loadingMessageIndex = conversation.findIndex(msg => msg.loading);
+  if (loadingMessageIndex >= 0) {
+    conversation[loadingMessageIndex].loading = false;
+    conversation[loadingMessageIndex].content = '请求已取消';
+  }
   isLoading.value = false;
 };
 
-/**
- * 选择模型
- */
-const selectModel = (model: ModelType) => {
-  selectedModel.value = model;
-};
-
-// 初始化
+// 组件挂载时初始化
 onMounted(() => {
-  // 监听窗口大小变化
-  window.addEventListener('resize', () => throttledResize(handleResize));
+  // 注册窗口大小变化事件
+  window.addEventListener('resize', handleResize);
+  handleResize();
   
-  // 初始化对话
+  // 初始化默认对话
   initializeConversation();
   
-  // 设置代码块事件监听
+  // 设置代码块交互事件
   setupCodeBlockEventListeners();
-  
-  // 初始检查窗口大小
-  handleResize();
 });
 </script>
 
 <style lang="scss">
+// .main-layout {
+//   display: flex;
+//   height: 100vh;
+//   width: 100%;
+//   overflow: hidden;
+//   background-color: white;
+// }
 
-.message-highlight {
-  animation: highlight-pulse 2s ease-in-out;
-}
+// 针对移动设备的样式
+// @media screen and (max-width: 768px) {
+//   .main-layout {
+//     .sidebar--expanded {
+//       position: fixed;
+//       z-index: 50;
+//       box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+//     }
+//   }
+// }
 
-@keyframes highlight-pulse {
-  0% {
-    background-color: rgba(22, 93, 255, 0.05);
-  }
-  50% {
-    background-color: rgba(22, 93, 255, 0.1);
-  }
-  100% {
-    background-color: transparent;
+/* 美化全局滚动条 */
+// ::-webkit-scrollbar {
+//   width: 6px;
+//   height: 6px;
+// }
+
+// ::-webkit-scrollbar-track {
+//   background: transparent;
+// }
+
+// ::-webkit-scrollbar-thumb {
+//   background-color: #e5e6eb;
+//   border-radius: 3px;
+// }
+
+// ::-webkit-scrollbar-thumb:hover {
+//   background-color: #c9cdd4;
+// }
+
+/* 自定义用户消息和AI消息气泡样式 */
+// .user-bubble {
+//   background-color: #4080ff;
+//   color: white;
+//   border-radius: 0.5rem;
+//   padding: 0.75rem 1rem;
+//   max-width: 85%;
+//   box-shadow: 0 2px 4px rgba(64, 128, 255, 0.2);
+//   word-break: break-word;
+// }
+
+// .ai-bubble {
+//   background-color: #f2f3f5;
+//   border-radius: 0.5rem;
+//   padding: 0.75rem 1rem;
+//   max-width: 100%;
+//   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+//   word-break: break-word;
+// }
+
+// .message-content {
+//   :deep(pre) {
+//     margin: 0.5rem 0;
+//     padding: 0.75rem;
+//     border-radius: 0.25rem;
+//     background-color: #1e293b;
+//     overflow-x: auto;
+//     color: #e2e8f0;
+//     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    
+//     code {
+//       background-color: transparent;
+//       padding: 0;
+//       border-radius: 0;
+//       color: inherit;
+//     }
+//   }
+  
+//   :deep(code) {
+//     background-color: rgba(22, 93, 255, 0.1);
+//     padding: 0.125rem 0.25rem;
+//     border-radius: 0.25rem;
+//     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+//     font-size: 0.875em;
+//     color: #1e293b;
+//   }
+  
+//   :deep(p) {
+//     margin-bottom: 0.75rem;
+//     &:last-child {
+//       margin-bottom: 0;
+//     }
+//   }
+  
+//   :deep(ul), :deep(ol) {
+//     margin-bottom: 0.75rem;
+//     padding-left: 1.5rem;
+    
+//     li {
+//       margin-bottom: 0.25rem;
+//     }
+//   }
+  
+//   :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+//     margin-top: 1.5rem;
+//     margin-bottom: 0.75rem;
+//     font-weight: 600;
+//   }
+  
+//   :deep(h1) { font-size: 1.5rem; }
+//   :deep(h2) { font-size: 1.3rem; }
+//   :deep(h3) { font-size: 1.17rem; }
+  
+//   :deep(a) {
+//     color: #165dff;
+//     text-decoration: none;
+    
+//     &:hover {
+//       text-decoration: underline;
+//     }
+//   }
+// }
+
+// .suggestion-item {
+//   display: flex;
+//   align-items: center;
+//   justify-content: space-between;
+//   padding: 0.5rem 0.75rem;
+//   background-color: #f7f8fa;
+//   border: 1px solid #e5e6eb;
+//   border-radius: 0.5rem;
+//   cursor: pointer;
+//   transition: all 0.2s ease;
+  
+//   &:hover {
+//     background-color: #f2f3f5;
+//     border-color: #c9cdd4;
+//   }
+// }
+
+/* 滚动到底部按钮 */
+.scroll-to-bottom-btn {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
   }
 }
 </style> 

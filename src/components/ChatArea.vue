@@ -239,17 +239,15 @@ const models: ModelOption[] = [
   { id: 'web', name: '联网搜索', icon: iconGlobal }
 ];
 
-// 聊天类型信息
-const chatTypeInfo = computed(() => {
-  return {
-    name: 'AI Agent助手',
-    icon: logoAI,
-    bgColor: 'bg-[#FFF3E8]',
-    description: '搜索、编程、写作、创作',
-    placeholder: '有什么可以帮你的?',
-    aiName: 'AI Agent助手'
-  };
-});
+// 聊天类型信息 - 使用常量而非计算属性
+const chatTypeInfo = {
+  name: 'AI Agent助手',
+  icon: iconCode,
+  bgColor: 'bg-[#FFF3E8]',
+  description: '搜索、编程、写作、创作',
+  placeholder: '有什么可以帮你的?',
+  aiName: 'AI Agent助手'
+};
 
 // 是否显示对话类型提示
 const showChatTypeHint = computed(() => {

@@ -44,7 +44,7 @@
       </div>
 
       <!-- 开启新对话按钮 -->
-      <a-button v-if="!isCollapsed" type="primary" class="new-chat-button flex items-center justify-center h-10 w-full relative" :style="{ backgroundColor: '$primary-color' }" @click="createNewConversation('general')">
+      <a-button v-if="!isCollapsed" type="primary" class="new-chat-button flex items-center justify-center h-10 w-full relative" :style="{ backgroundColor: '$primary-color' }" @click="createNewConversation">
         <div class="flex items-center justify-center">
           <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-4 h-4 mr-2" />
           <span>开启新对话</span>
@@ -53,7 +53,7 @@
 
       <!-- 折叠时的新对话按钮 -->
       <a-tooltip v-if="isCollapsed" placement="right" title="开启新对话">
-        <div class="p-2 rounded-full flex items-center justify-center cursor-pointer new-chat-icon" @click="createNewConversation('general')">
+        <div class="p-2 rounded-full flex items-center justify-center cursor-pointer new-chat-icon" @click="createNewConversation">
           <img src="../assets/icons/icon-chat.svg" alt="开启新对话" class="w-5 h-5" />
         </div>
       </a-tooltip>
@@ -106,7 +106,7 @@
                 @click="switchConversation(conv.id)"
               >
                 <div class="conversation-type-indicator" 
-                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor(conv.chatType)"></div>
+                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor()"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -124,7 +124,7 @@
                 @click="switchConversation(conv.id)"
               >
                 <div class="conversation-type-indicator" 
-                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor(conv.chatType)"></div>
+                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor()"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -142,7 +142,7 @@
                 @click="switchConversation(conv.id)"
               >
                 <div class="conversation-type-indicator" 
-                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor(conv.chatType)"></div>
+                     :class="isActiveConversation(conv.id) ? 'bg-[#4CAF50] conversation-type-indicator--active' : getChatTypeColor()"></div>
                 <span class="conversation-title">{{ conv.title || formatConversationTitle(conv) }}</span>
               </div>
             </div>
@@ -215,14 +215,9 @@ const props = defineProps({
     type: String,
     default: ''
   },
-  activeChatType: {
-    type: String as () => ChatType,
-    default: 'general'
-  },
   conversationsByType: {
     type: Object as () => Record<ChatType, ConversationHistory[]>,
     default: () => ({
-      general: [],
       agent: []
     })
   }
@@ -238,7 +233,6 @@ const emit = defineEmits([
   'toggle-collapse', 
   'new-conversation', 
   'switch-conversation', 
-  'switch-chat-type',
   'clear-all-conversations'
 ]);
 
@@ -248,8 +242,8 @@ const toggleCollapse = () => {
 };
 
 // 创建新对话
-const createNewConversation = (type: ChatType = 'general') => {
-  emit('new-conversation', type);
+const createNewConversation = () => {
+  emit('new-conversation');
 };
 
 // 切换到指定对话
@@ -296,20 +290,12 @@ const filteredConversations = computed(() => {
 // 生成对话标题（如果没有标题）
 const formatConversationTitle = (conv: ConversationHistory): string => {
   if (conv.title) return conv.title;
-  
-  // 根据聊天类型生成默认标题
-  if (conv.chatType === 'agent') return 'AI Agent对话';
-  return '无标题对话';
+  return 'AI Agent对话';
 };
 
 // 获取聊天类型对应的背景颜色
-const getChatTypeColor = (chatType: ChatType): string => {
-  switch (chatType) {
-    case 'agent':
-      return 'bg-[#4CAF50]';
-    default:
-      return 'bg-[#CCCCCC]'; // 淡灰色
-  }
+const getChatTypeColor = (): string => {
+  return 'bg-[#4CAF50]';
 };
 
 // 获取今天的对话
